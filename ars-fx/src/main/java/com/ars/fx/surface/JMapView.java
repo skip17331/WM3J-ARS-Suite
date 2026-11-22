@@ -153,7 +153,7 @@ public final class JMapView {
     /** A spot was clicked, on the map or in the list: show who it is, then do the shared spot action. */
     static void selectSpot(Node source, MapSpot s) {
         selectSpotCall(s.call());
-        DxInfoCard.show(source, s, workedCalls().contains(s.call().toUpperCase()));
+        DxInfoCard.show(source, s, spotWorked(s));
         SpotAction.onSpot(source, s.call(), s.freqHz(), s.mode(), s.band(), s.lat(), s.lon());
     }
 
@@ -182,8 +182,31 @@ public final class JMapView {
         if (n - workedCallsAt > 5000) { workedCallsCache = new java.util.HashSet<>(com.ars.fx.data.JLogDb.distinctCalls()); workedCallsAt = n; }
         return workedCallsCache;
     }
-    /** "Needed only" — hide spots whose call is already in the log. */
-    static boolean spotHidden(String call) { return ovNeededOnly && workedCalls().contains(call.toUpperCase()); }
+    private static final java.util.Map<String, Boolean> contestDupeMemo = new java.util.concurrent.ConcurrentHashMap<>();
+    private static long contestDupeAt = 0;
+    /**
+     * Is this spot already worked? With a contest open: a dupe by that contest's own rules (same call on the same band and mode, or whatever the contest
+     * says), as the dashboard's cluster list judges it; before, J-Map asked the normal log whether the call had ever been worked, so a station worked in
+     * the contest still showed as needed. With no contest: the call is in the normal log. The contest answers are kept for 5 seconds (the repaint asks
+     * for every spot), and re-read from the database because an undocked J-Map is another process from the one logging.
+     */
+    static boolean spotWorked(MapSpot s) {
+        String call = s.call().toUpperCase();
+        if (com.ars.fx.data.ContestState.activeId().isBlank()) return workedCalls().contains(call);
+        com.ars.fx.data.ContestState.ensureLoaded();
+        com.jlog.plugin.ContestPlugin plugin = com.ars.fx.data.ContestState.plugin();
+        if (plugin == null) return workedCalls().contains(call);
+        long n = System.currentTimeMillis();
+        if (n - contestDupeAt > 5000) { contestDupeMemo.clear(); contestDupeAt = n; }
+        return contestDupeMemo.computeIfAbsent(call + "|" + s.band() + "|" + s.mode(), k -> {
+            try {
+                com.jlog.model.QsoRecord cand = com.ars.fx.data.MultCheck.candidateOf(plugin, call, s.band(), s.mode());
+                return com.jlog.scoring.ContestScorer.isDupe(plugin, cand, com.jlog.db.ContestQsoDao.getInstance().findByCallsign(plugin.getContestId(), call));
+            } catch (Exception e) { return false; }
+        });
+    }
+    /** "Needed only" — hide spots that are already worked. */
+    static boolean spotHidden(MapSpot s) { return ovNeededOnly && spotWorked(s); }
 
     // ---- live DX-cluster spots on the map ---------------------------------
     static int spotMode = Math.max(0, Math.min(3, com.ars.fx.data.HubConfig.getInt("map.spotMode", 0)));   // 0 All · 1 CW · 2 Phone · 3 Digi
@@ -406,7 +429,7 @@ public final class JMapView {
         long now = System.currentTimeMillis();
         java.util.List<MapSpot> spots = frameSpots != null ? frameSpots : liveSpots();
         if (showSpotPaths) for (MapSpot s : spots) {
-            if (spotHidden(s.call()) || s.arrivalMs() < spotPathsSince || s.call().equalsIgnoreCase(selectedSpotCall)) continue;
+            if (spotHidden(s) || s.arrivalMs() < spotPathsSince || s.call().equalsIgnoreCase(selectedSpotCall)) continue;
             double age = (now - s.arrivalMs()) / (double) SPOT_PATH_LIFE_MS;      // 0 new, 1 gone
             if (age >= 1) continue;
             double fade = 1 - age * 0.9;                                            // full strength to 10 % just before it expires
@@ -423,7 +446,7 @@ public final class JMapView {
         gcWidth = 2.2;
         try {
             for (MapSpot s : spots) {
-                if (!s.call().equalsIgnoreCase(selectedSpotCall) || spotHidden(s.call())) continue;
+                if (!s.call().equalsIgnoreCase(selectedSpotCall) || spotHidden(s)) continue;
                 double[] ll = spotterAt(s.spotter());
                 if (ll == null || (Math.abs(ll[0] - s.lat()) < 0.01 && Math.abs(ll[1] - s.lon()) < 0.01)) continue;
                 drawGcPath(g, proj, s.lat(), s.lon(), ll[0], ll[1], red);
@@ -861,7 +884,7 @@ public final class JMapView {
             if (n++ >= 40) break;
             Region dot = new Region(); dot.getStyleClass().add("jm-spot-dot"); dot.setStyle("-fx-background-color:" + toHex(s.color()) + ";");
             Label fq = lbl(com.ars.fx.data.ClusterClient.fmtFreq(s.freqHz()), "jm-spot-fq"); fq.setMinWidth(54);
-            String need = workedCalls().contains(s.call().toUpperCase()) ? "n" : "y";
+            String need = spotWorked(s) ? "n" : "y";
             VBox txt = new VBox(1, hcall(s.call(), need),
                     lbl(s.band() + " · " + s.mode() + " · " + com.ars.fx.data.ClusterClient.age(s.arrivalMs()), "jm-spot-meta")); HBox.setHgrow(txt, Priority.ALWAYS);
             HBox row = new HBox(11, dot, fq, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jm-spot-row");

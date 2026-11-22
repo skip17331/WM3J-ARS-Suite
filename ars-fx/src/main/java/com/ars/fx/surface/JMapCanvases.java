@@ -97,7 +97,7 @@ final class JMapCanvases {
             double spotA = dimSpots() ? 0.28 : 1.0;
             paintedDots.clear(); limbDots.clear();
             for (MapSpot s : globeSpots) {
-                if (spotHidden(s.call())) continue;
+                if (spotHidden(s)) continue;
                 double[] xy = gp.at(s.lat(), s.lon());
                 if (xy == null) { noteLimbSpot(pr, s, w, h); continue; }       // round the back: a burst on the globe's edge, if it is new
                 paintedDots.add(new Dot(xy[0], xy[1], s));
@@ -231,7 +231,7 @@ final class JMapCanvases {
         double spotA = dimSpots() ? 0.28 : 1.0;
         paintedDots.clear(); limbDots.clear();
         for (MapSpot s : liveSpots()){
-            if (spotHidden(s.call())) continue;
+            if (spotHidden(s)) continue;
             double[] pp = azProject(s.lat(), s.lon(), cx, cy, R);
             if (pp[2] > 1.0) continue;                       // off the visible disk
             double x = pp[0], y = pp[1];
@@ -760,7 +760,7 @@ final class JMapCanvases {
         double spotA = dimSpots() ? 0.28 : 1.0;
         paintedDots.clear(); limbDots.clear();
         for (MapSpot s : liveSpots()) {
-            if (spotHidden(s.call())) continue;
+            if (spotHidden(s)) continue;
             double x = lon2x(s.lon(), RMX, RW), y = lat2y(s.lat(), RMY, RH);
             paintedDots.add(new Dot(x, y, s));
             g.setStroke(Color.web("#0b0f14", 0.8 * spotA)); g.setLineWidth(2); g.strokeOval(x - 4.5, y - 4.5, 9, 9);
