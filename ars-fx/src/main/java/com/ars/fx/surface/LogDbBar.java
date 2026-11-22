@@ -35,4 +35,20 @@ final class LogDbBar {
         bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(0, 18, 6, 18));
         return bar;
     }
+
+    /** The same information as a LOG TOOLS drawer for the contest page: which database is in use, Switch database, Database tools. */
+    static javafx.scene.Node drawer(boolean contest) {
+        Label where = lbl(contest ? LogDbInfo.contestLine() : LogDbInfo.normalLine(), "jl-emeta"); where.setWrapText(true);
+        Tooltip.install(where, new Tooltip(String.valueOf(contest ? LogDbInfo.contestPath() : LogDbInfo.normalPath())));
+        javafx.scene.layout.VBox body = new javafx.scene.layout.VBox(8, where);
+        if (contest) {
+            Label sw = lbl("Switch database", "jl-clearbtn"); sw.setStyle("-fx-cursor:hand;");
+            sw.setOnMouseClicked(e -> JLogContest.switchDatabase(sw));
+            body.getChildren().add(sw);
+        }
+        Label tools = lbl("Database tools \u203a", "jl-clearbtn"); tools.setStyle("-fx-cursor:hand;");
+        tools.setOnMouseClicked(e -> Shell.navigate("setup:logdb"));
+        body.getChildren().add(tools);
+        return Shell.drawer("Database", "log", "log", "", false, body);
+    }
 }
