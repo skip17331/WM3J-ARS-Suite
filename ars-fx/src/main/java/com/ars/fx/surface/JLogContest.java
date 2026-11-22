@@ -404,8 +404,13 @@ public final class JLogContest {
         Label logBtn = lbl("Log QSO  ⏎", "jl-logbtn"); logBtn.setStyle("-fx-cursor:hand;");
         Label spotBtn = lbl("Log + Spot", "jl-logbtn"); spotBtn.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(spotBtn, "Save this QSO and post a spot for the station to the DX cluster, on the rig's frequency");
-        HBox actions = new HBox(12, b4, gap, clear, spotBtn, logBtn); actions.setAlignment(Pos.CENTER_LEFT);
+        Label parkBtn = lbl("Park", "jl-clearbtn");   // set this contact aside (call, exchange, radio frequency) to try another station, and come back
+        parkBtn.setStyle("-fx-cursor:hand;-fx-font-size:16px;-fx-font-weight:bold;-fx-padding:12 22 12 22;-fx-border-color:-ars-accent;-fx-border-radius:8;-fx-background-radius:8;");
+        com.ars.fx.shell.Tips.tip(parkBtn, "Park this contact (Ctrl+P): saves the call, the exchange and the radio's frequency and clears the form for another station. Click its chip (or Ctrl+1...) to come back: the form is filled in and the radio retuned.");
+        parkBtn.setOnMouseClicked(e -> JLogContestPark.park());
+        HBox actions = new HBox(12, b4, gap, parkBtn, clear, spotBtn, logBtn); actions.setAlignment(Pos.CENTER_LEFT);
         body.getChildren().add(actions);
+        body.getChildren().add(JLogContestPark.strip(plugin.getContestId()));
         problemL = lbl("", "jl-emeta"); problemL.setWrapText(true); problemL.setMaxWidth(Double.MAX_VALUE);
         problemL.setStyle("-fx-font-size:18px;-fx-font-weight:bold;-fx-text-fill:-ars-err;");
         problemL.managedProperty().bind(problemL.textProperty().isNotEmpty());
@@ -450,6 +455,8 @@ public final class JLogContest {
         clear.setOnMouseClicked(e -> clearForm());
 
         // keyboard flow: Enter in any field logs (a missing required field takes the focus instead), Esc clears
+        for (Control c : fieldControls.values()) JLogContestPark.installKeys(c);
+        JLogContestPark.installKeys(bandF); JLogContestPark.installKeys(modeF);
         for (Control c : fieldControls.values()) {
             if (c instanceof TextField t) t.setOnAction(e -> { spotAfter = false; doLog.run(); });
             c.setOnKeyPressed(e -> { if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) clearForm(); });
