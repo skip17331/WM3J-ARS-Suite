@@ -23,6 +23,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -104,9 +105,21 @@ public final class JLogContest {
         cluster.setMinWidth(380); cluster.setMaxWidth(Double.MAX_VALUE);
         cluster.setMinHeight(300); cluster.setPrefHeight(620); cluster.setMaxHeight(Double.MAX_VALUE);   // twice the old 310 px; the spot list scrolls inside it, and it gives way when the window is short
         VBox.setVgrow(cluster, Priority.ALWAYS);
-        VBox right = new VBox(10, cluster);
         TabPane tabs = contestTabs(plugin);
-        if (tabs != null) { tabs.setMaxHeight(Double.MAX_VALUE); VBox.setVgrow(tabs, Priority.ALWAYS); right.getChildren().add(tabs); }   // the freed height goes to the sections / statistics
+        Region right;
+        if (tabs == null) right = new VBox(10, cluster);
+        else {
+            // drag the divider between the DX cluster and the sections / statistics to size the spot list; the position is remembered
+            tabs.setMinHeight(220); tabs.setPrefHeight(300); tabs.setMaxHeight(Double.MAX_VALUE);
+            SplitPane split = new SplitPane(cluster, tabs); split.setOrientation(javafx.geometry.Orientation.VERTICAL);
+            split.setStyle("-fx-background-color:transparent;-fx-padding:0;");
+            SplitPane.setResizableWithParent(cluster, true); SplitPane.setResizableWithParent(tabs, false);   // a taller window gives the extra to the spot list
+            split.setDividerPositions(Math.max(0.2, Math.min(0.85, com.ars.fx.data.HubConfig.getInt("contest.clusterSplit", 680) / 1000.0)));
+            javafx.animation.PauseTransition keep = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
+            keep.setOnFinished(e -> com.ars.fx.data.HubConfig.setInt("contest.clusterSplit", (int) Math.round(split.getDividerPositions()[0] * 1000)));
+            split.getDividers().get(0).positionProperty().addListener((o, a, b) -> keep.playFromStart());
+            right = split;
+        }
         right.setMinWidth(380); HBox.setHgrow(right, Priority.ALWAYS);
         HBox main = new HBox(14, sp, right); main.setFillHeight(true); main.setPadding(new Insets(0, 14, 10, 0));
         main.setStyle("-fx-background-color:-ars-bg;");
