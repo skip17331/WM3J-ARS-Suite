@@ -73,7 +73,7 @@ final class JLogContestLog {
         Label erase = lbl("Erase", "jl-clearbtn"); erase.setStyle("-fx-cursor:hand;-fx-text-fill:-ars-err;");
         Label labelBtn = lbl("Label", "jl-clearbtn"); labelBtn.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(labelBtn, "Print the QSL label for this QSO (printer and size: Setup ▸ Label printers)");
-        edit.setOnMouseClicked(e -> loadForEdit(q));
+        edit.setOnMouseClicked(e -> QsoEditDialog.show(edit, q));  // the edit form: a pop-up with every field of the QSO
         erase.setOnMouseClicked(e -> eraseQso(erase, q));
         labelBtn.setOnMouseClicked(e -> {
             setB4("⋯ printing label for " + q.getCallsign() + "…", "new");

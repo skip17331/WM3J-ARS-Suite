@@ -67,6 +67,7 @@ public final class JLogContest {
     static Label problemL;                       // what is wrong with the entry (invalid section, missing field...)
     static String problemOwner = "";             // field the message is about
     static boolean softArmed;                    // a "not recognised" warning was shown: the next Enter logs anyway
+    static Label dupeInfoL;                      // the earlier QSO(s) with the typed call, in full, while it is a dupe
     static Label similarL;                       // possible-duplicate callsigns
     static com.ars.fx.surface.contest.ScpBox scpBox;   // Super Check Partial strip under the call
     static final java.util.Set<String> keepIds = new java.util.HashSet<>();   // fields that survive Clear (sent + persistent)
@@ -419,6 +420,10 @@ public final class JLogContest {
                 + "-fx-background-color:-ars-surface-2;-fx-border-color:-ars-err;-fx-border-radius:6;-fx-background-radius:6;-fx-padding:8 12 8 12;");
         similarL.managedProperty().bind(similarL.textProperty().isNotEmpty());   // no empty box while there is nothing to warn about
         similarL.visibleProperty().bind(similarL.textProperty().isNotEmpty());
+        dupeInfoL = lbl("", "jl-emeta"); dupeInfoL.setWrapText(true); dupeInfoL.setMaxWidth(Double.MAX_VALUE);
+        dupeInfoL.setStyle("-fx-font-size:15px;-fx-font-weight:bold;-fx-text-fill:-ars-err;-fx-font-family:'JetBrains Mono';-fx-padding:2 4 2 4;");
+        dupeInfoL.managedProperty().bind(dupeInfoL.textProperty().isNotEmpty()); dupeInfoL.visibleProperty().bind(dupeInfoL.textProperty().isNotEmpty());
+        body.getChildren().add(dupeInfoL);
         body.getChildren().add(similarL);
         scpBox = new com.ars.fx.surface.contest.ScpBox(c -> {
             if (fieldControls.get("callsign") instanceof TextField cf) { cf.setText(c); cf.requestFocus(); cf.positionCaret(c.length()); }
@@ -511,6 +516,8 @@ public final class JLogContest {
             // the call was deleted: whatever the dupe / call-history lookup filled in (precedence, check, section ...) goes with it
             if ((b == null || b.isEmpty()) && a != null && !a.isEmpty() && editingRec == null) Platform.runLater(() -> { if (cf.getText() == null || cf.getText().isEmpty()) clearForm(); });   // still empty: a spot click may have set a call since
         });
+        // leaving the call field (Space / Tab to the exchange) means the call is complete: the partial-dupe warning goes; coming back brings it back
+        callC.focusedProperty().addListener((o, was, now) -> updateDupe(plugin, false));
         bandF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
         modeF.textProperty().addListener((o, a, b) -> dupeDelay.playFromStart());
 
@@ -734,7 +741,7 @@ public final class JLogContest {
                 setB4("\u26d4 DUPE \u2014 " + call.toUpperCase(), "dupe");
                 Confirm.show(b4, "Dupe \u2014 " + call.toUpperCase(),
                         call.toUpperCase() + " is already in the log for " + normBand(bandF.getText()) + " " + modeF.getText().trim().toUpperCase()
-                                + ". A dupe scores nothing. Log it anyway?",
+                                + ":\n" + describeAll(plugin, prior) + "\nA dupe scores nothing. Log it anyway?",
                         new Confirm.Choice("Don't log it", true, () -> focus("callsign")),
                         new Confirm.Choice("Log the dupe", false, () -> { if (logQso(plugin, true)) finishLog(); }));
                 return false;
@@ -779,6 +786,45 @@ public final class JLogContest {
     }
 
     // ---- edit / erase a logged QSO ------------------------------------------------
+    /**
+     * One QSO as the operator needs to see it when a dupe turns up: call, serial, then the exchange the other station sent (precedence, check,
+     * section ... whatever the contest's entry fields are, with their own labels), then when and where it was logged.
+     * {@code CALL  NR 12  PREC A  CHK 72  SECT EPA  ·  14:32Z 20m CW  ·  we sent #45}
+     */
+    static String describe(ContestPlugin plugin, QsoRecord q) {
+        List<String> parts = new ArrayList<>();
+        parts.add(q.getCallsign() == null ? "?" : q.getCallsign());
+        for (FieldDef fd : plugin.getEntryFields()) {
+            if (fd.getEntryRow() == 1 || "callsign".equals(fd.getId()) || "band".equals(fd.getId()) || "mode".equals(fd.getId())) continue;
+            String v = switch (fd.getId()) {
+                case "rst_rcvd", "rst_received" -> q.getRstReceived();
+                case "serial_rcvd", "serial_received" -> q.getSerialReceived();
+                default -> { String slot = plugin.fieldSlotColumn(fd.getId()); yield slot == null ? null : slotValue(q, slot); }
+            };
+            if (v == null || v.isBlank()) continue;
+            String label = fd.getLabel() == null || fd.getLabel().isBlank() ? fd.getId() : fd.getLabel();
+            parts.add(label.toUpperCase(java.util.Locale.ROOT) + " " + v.trim());
+        }
+        String when = "";
+        if (q.getDateTimeUtc() != null) {
+            boolean today = q.getDateTimeUtc().toLocalDate().equals(LocalDateTime.now(ZoneOffset.UTC).toLocalDate());
+            when = (today ? "" : q.getDateTimeUtc().toLocalDate() + " ") + q.getDateTimeUtc().format(HMS).substring(0, 5) + "Z";
+        }
+        String where = String.join(" ", strip(when, z(q.getBand()), z(q.getMode())));
+        String sent = q.getSerialSent() == null || q.getSerialSent().isBlank() ? "" : "  \u00b7  we sent #" + q.getSerialSent().trim();
+        return String.join("  ", parts) + "  \u00b7  " + where + sent;
+    }
+    private static String[] strip(String... p) { return java.util.Arrays.stream(p).filter(x -> x != null && !x.isBlank()).toArray(String[]::new); }
+    /** The earlier QSOs with this call, newest first, one line each (at most three, then "+ n more"), for the dupe warning. */
+    static String describeAll(ContestPlugin plugin, List<QsoRecord> prior) {
+        List<QsoRecord> sorted = new ArrayList<>(prior);
+        sorted.sort(java.util.Comparator.comparing(QsoRecord::getDateTimeUtc, java.util.Comparator.nullsFirst(java.util.Comparator.<LocalDateTime>naturalOrder())).reversed());
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < sorted.size() && i < 3; i++) { if (i > 0) b.append('\n'); b.append(describe(plugin, sorted.get(i))); }
+        if (sorted.size() > 3) b.append("\n+ ").append(sorted.size() - 3).append(" more");
+        return b.toString();
+    }
+
     static String slotValue(QsoRecord q, String slot) {
         return switch (slot) {
             case "field1" -> q.getContestField1();
@@ -821,7 +867,7 @@ public final class JLogContest {
     /** The log browser's Edit: load {@code q} into the contest page's entry form. False when the contest page has not been opened yet. */
     static boolean editFromBrowser(QsoRecord q) {
         if (fieldControls == null || !isActiveContest(q.getContestId())) return false;
-        loadForEdit(q);
+        QsoEditDialog.show(host, q);
         return true;
     }
     /** The log browser's Delete: same confirmation, dupe re-check, N1MM and network notices as Erase on the contest page. */
@@ -869,15 +915,18 @@ public final class JLogContest {
     /** @param fromCall true when the call, band or mode changed (may refill the exchange from an earlier QSO); false for an exchange edit */
     static void updateDupe(ContestPlugin plugin, boolean fromCall) {
         String call = value("callsign");
-        if (call == null || call.length() < 2) { setB4("New", ""); if (similarL != null) similarL.setText(""); if (memoryL != null) memoryL.setText(""); return; }
+        if (call == null || call.length() < 2) { setB4("New", ""); if (dupeInfoL != null) dupeInfoL.setText(""); if (similarL != null) similarL.setText(""); if (memoryL != null) memoryL.setText(""); return; }
         final String typed = call.toUpperCase();
         final QsoRecord cand = candidate(plugin);                      // read the form here, on the FX thread
         final boolean ready = readyForMult(plugin);
+        // "possible dupes" are for a call still being typed: once the operator has moved on to the exchange the call is taken as complete, and a
+        // call that is not in the log is simply new
+        final boolean typing = fieldControls.get("callsign") != null && fieldControls.get("callsign").isFocused();
         Thread t = new Thread(() -> {
             try {
                 List<QsoRecord> prior = ContestQsoDao.getInstance().findByCallsign(plugin.getContestId(), typed);
                 boolean dupe = ContestScorer.isDupe(plugin, cand, prior);
-                String similar = similarCalls(plugin, typed);
+                String similar = typing ? similarCalls(plugin, typed) : "";
                 boolean newMult = !dupe && ready && MultCheck.isNewMult(plugin, ContestState.qsos(), cand, ContestState.ctx());
                 QsoRecord last = null;
                 for (QsoRecord q : prior) if (last == null || (q.getDateTimeUtc() != null && last.getDateTimeUtc() != null && q.getDateTimeUtc().isAfter(last.getDateTimeUtc()))) last = q;
@@ -885,6 +934,7 @@ public final class JLogContest {
                 final java.util.Map<String, String> hist = earlier == null && fromCall ? com.ars.fx.data.CallHistory.get(typed) : java.util.Map.of();
                 Platform.runLater(() -> {
                     String star = newMult ? "   \u2605 NEW MULT" : "";
+                    if (dupeInfoL != null) dupeInfoL.setText(dupe ? "Already logged:\n" + describeAll(plugin, prior) : "");
                     if (dupe) setB4("\u26d4 DUPE \u2014 " + typed, "dupe");
                     else if (!prior.isEmpty()) setB4("\u25d0 NEW BAND/MODE \u2014 " + typed + " (worked " + prior.size() + "\u00d7 elsewhere)" + star, newMult ? "new" : "b4");
                     else if (!similar.isEmpty()) setB4("\u25d0 POSSIBLE DUPE \u2014 " + typed + star, newMult ? "new" : "b4");
@@ -1062,6 +1112,9 @@ public final class JLogContest {
         javafx.animation.Timeline tl = new javafx.animation.Timeline(new javafx.animation.KeyFrame(
                 javafx.util.Duration.seconds(3), e -> ContestState.recomputeIfChanged()));
         tl.setCycleCount(javafx.animation.Timeline.INDEFINITE); tl.play();
+        javafx.animation.Timeline sec = new javafx.animation.Timeline(new javafx.animation.KeyFrame(      // the "since last QSO" clock counts every second
+                javafx.util.Duration.seconds(1), e -> { if ("logc".equals(Shell.currentSurface)) refreshScoreStats(); }));
+        sec.setCycleCount(javafx.animation.Timeline.INDEFINITE); sec.play();
     }
 
     // ---- small helpers ----------------------------------------------------

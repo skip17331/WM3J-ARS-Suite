@@ -61,6 +61,9 @@ final class JLogContestScore {
         String[] clock = clockTile(p);
         if (clock != null) out.add(clock);
         out.addAll(layoutTiles(p));
+        String[] gaps = gapTexts();                                     // the time between contacts: always the last two tiles
+        out.add(new String[]{"SINCE LAST QSO", gaps[0]});
+        out.add(new String[]{"LAST GAP", gaps[1]});
         return out.toArray(new String[0][]);
     }
 
@@ -218,6 +221,15 @@ final class JLogContestScore {
         int extraAt = clockAt + (clock != null ? 1 : 0);
         List<String[]> extra = layoutTiles(ContestState.plugin());
         for (int i = 0; i < extra.size() && extraAt + i < vs.size(); i++) vs.get(extraAt + i).setText(extra.get(i)[1]);
+        int gapAt = extraAt + extra.size();
+        if (vs.size() > gapAt + 1) { String[] g = gapTexts(); vs.get(gapAt).setText(g[0]); vs.get(gapAt + 1).setText(g[1]); }
+    }
+    /** {since the last QSO, the gap before it} as clock text, from the contest log (a dupe is still a contact). */
+    static String[] gapTexts() {
+        List<LocalDateTime> times = new ArrayList<>();
+        for (QsoRecord q : ContestState.qsos()) times.add(q.getDateTimeUtc());
+        return new String[]{com.ars.fx.data.QsoGaps.fmt(com.ars.fx.data.QsoGaps.sinceLast(times, LocalDateTime.now(ZoneOffset.UTC))),
+                com.ars.fx.data.QsoGaps.fmt(com.ars.fx.data.QsoGaps.lastGap(times))};
     }
     static void collectStatV(Node n, List<Label> out) {
         if (n instanceof Label l && (l.getStyleClass().contains("hero-stat-v") || l.getStyleClass().contains("sx-stat-v"))) out.add(l);
