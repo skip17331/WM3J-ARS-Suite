@@ -397,8 +397,8 @@ public final class JLogContest {
         memoryL.managedProperty().bind(memoryL.textProperty().isNotEmpty()); memoryL.visibleProperty().bind(memoryL.textProperty().isNotEmpty());
         similarL = lbl("", "jl-emeta"); similarL.setWrapText(true);   // possible duplicates: calls already logged that resemble the typed one
         similarL.setMaxWidth(Double.MAX_VALUE);
-        similarL.setStyle("-fx-font-size:20px;-fx-font-weight:bold;-fx-text-fill:-ars-warn;-fx-font-family:'JetBrains Mono';"
-                + "-fx-background-color:-ars-surface-2;-fx-border-color:-ars-warn;-fx-border-radius:6;-fx-background-radius:6;-fx-padding:8 12 8 12;");
+        similarL.setStyle("-fx-font-size:20px;-fx-font-weight:bold;-fx-text-fill:-ars-err;-fx-font-family:'JetBrains Mono';"
+                + "-fx-background-color:-ars-surface-2;-fx-border-color:-ars-err;-fx-border-radius:6;-fx-background-radius:6;-fx-padding:8 12 8 12;");
         similarL.managedProperty().bind(similarL.textProperty().isNotEmpty());   // no empty box while there is nothing to warn about
         similarL.visibleProperty().bind(similarL.textProperty().isNotEmpty());
         body.getChildren().add(similarL);
@@ -884,23 +884,27 @@ public final class JLogContest {
         return id.equals("callsign") || id.equals("band") || id.equals("mode") || id.startsWith("rst") || id.startsWith("serial");
     }
 
-    /** Logged calls that look like what is being typed: they start with it, contain it, or are contained in it
-     *  (a partial call, or one letter too many). Other than an exact match; at most 8, with band and mode. */
+    /** Logged calls that look like what is being typed: they share any three contiguous characters with it (KC8RHC finds KC8, C8R, 8RH and RHC),
+     *  best match first. Other than an exact match; at most 8, with band and mode. */
     static String similarCalls(ContestPlugin plugin, String typed) {
         if (typed.length() < 3) return "";
-        java.util.Map<String, String> found = new java.util.TreeMap<>();
+        java.util.Map<String, String> found = new java.util.HashMap<>();
+        java.util.Map<String, Integer> score = new java.util.HashMap<>();
         try {
             for (QsoRecord q : ContestQsoDao.getInstance().fetchByContest(plugin.getContestId())) {
                 String c = q.getCallsign() == null ? "" : q.getCallsign().toUpperCase();
                 if (c.isEmpty() || c.equals(typed) || q.isDupe()) continue;
-                if (c.contains(typed) || (c.length() >= 3 && typed.contains(c)))
-                    found.merge(c, (z(q.getBand()) + " " + z(q.getMode())).trim(), (a, b) -> a);
+                int sc = com.ars.fx.data.CallSimilarity.score(typed, c);
+                if (sc > 0) { found.merge(c, (z(q.getBand()) + " " + z(q.getMode())).trim(), (a, b) -> a); score.put(c, sc); }
             }
         } catch (Exception ignored) {}
+        List<String> calls = new ArrayList<>(found.keySet());
+        calls.sort(java.util.Comparator.<String>comparingInt(c -> -score.get(c)).thenComparing(java.util.Comparator.naturalOrder()));
         List<String> out = new ArrayList<>();
-        for (Map.Entry<String, String> e : found.entrySet()) {
+        for (String c : calls) {
             if (out.size() >= 8) break;
-            out.add(e.getValue().isEmpty() ? e.getKey() : e.getKey() + " (" + e.getValue() + ")");
+            String bm = found.get(c);
+            out.add(bm.isEmpty() ? c : c + " (" + bm + ")");
         }
         return String.join(",  ", out);
     }
