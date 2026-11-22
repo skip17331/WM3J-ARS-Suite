@@ -691,7 +691,7 @@ public final class JLogContest {
             // a new multiplier is worked out before the QSO is in the log (only when something is listening: it scores the log twice)
             boolean newMult = !editing && !dupe && com.ars.fx.data.N1mmBroadcast.enabled() && MultCheck.isNewMult(plugin, ContestState.qsos(), r, ContestState.ctx());
             if (editing) { ContestQsoDao.getInstance().update(r); editingRec = null; reflagDupes(plugin); com.ars.fx.data.N1mmBroadcast.contactEdited(plugin, r, oldCall); }
-            else { if (spotAfter) spotNote = spotNow(r); ContestQsoDao.getInstance().insert(r); serial++; com.ars.fx.data.N1mmBroadcast.contactAdded(plugin, r, newMult); com.ars.fx.data.QsoRecorder.logged(r.getCallsign(), r.getBand(), r.getMode()); com.ars.fx.data.SessionQsos.logged(r.getCallsign(), null, r.getBand(), r.getMode()); }
+            else { if (spotAfter) spotNote = spotNow(r); ContestQsoDao.getInstance().insert(r); serial++; com.ars.fx.data.N1mmBroadcast.contactAdded(plugin, r, newMult); com.ars.fx.shell.IdTimer.reset(); com.ars.fx.data.QsoRecorder.logged(r.getCallsign(), r.getBand(), r.getMode()); com.ars.fx.data.SessionQsos.logged(r.getCallsign(), null, r.getBand(), r.getMode()); }
             ContestState.recompute();
             if (!editing && !dupe && printQsl != null) printQsl.afterSave(com.ars.fx.data.QslLabel.fromContest(r));   // new, non-dupe QSOs only
             final QsoRecord logged = r;
@@ -716,7 +716,7 @@ public final class JLogContest {
         if (spotAfter) spotNote = spotNow(first);
         serial++;
         com.ars.fx.data.SessionQsos.logged(first.getCallsign(), null, first.getBand(), first.getMode());
-        com.ars.fx.data.QsoRecorder.logged(first.getCallsign(), first.getBand(), first.getMode());   // one recording for the contact
+        com.ars.fx.shell.IdTimer.reset(); com.ars.fx.data.QsoRecorder.logged(first.getCallsign(), first.getBand(), first.getMode());   // one recording for the contact
         ContestState.recompute();
         if (printQsl != null) printQsl.afterSave(com.ars.fx.data.QslLabel.fromContest(first));
         Thread lt = new Thread(() -> com.ars.fx.data.CallHistory.learn(plugin, first), "call-history-learn");
