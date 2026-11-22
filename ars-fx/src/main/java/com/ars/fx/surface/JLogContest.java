@@ -486,7 +486,10 @@ public final class JLogContest {
                 && fieldControls.get(plugin.getMultiplierModel().getField()) instanceof TextField mf) {
             javafx.animation.PauseTransition blinkDelay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(400));
             blinkDelay.setOnFinished(e -> com.ars.fx.surface.contest.Lightbox.flash(mf.getText()));
-            mf.textProperty().addListener((o, a, b) -> { if (b != null && !b.isBlank()) blinkDelay.playFromStart(); });
+            mf.textProperty().addListener((o, a, b) -> {
+                if (b != null && !b.isBlank()) blinkDelay.playFromStart();
+                else { blinkDelay.stop(); com.ars.fx.surface.contest.Lightbox.flash(null); }      // cleared: the blink stops
+            });
         }
 
         // CQ WPX: the prefix follows from the call (K1ABC -> K1), so fill it as the call is typed; one the operator has typed over is left alone
