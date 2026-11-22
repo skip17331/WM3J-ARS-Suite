@@ -883,11 +883,13 @@ public final class JMapView {
             e.setPadding(new Insets(10, 2, 10, 2)); spots.getChildren().add(e); return;
         }
         int n = 0;
+        boolean inContest = !com.ars.fx.data.ContestState.activeId().isBlank();
         for (MapSpot s : list) {
             if (n++ >= 40) break;
             Region dot = new Region(); dot.getStyleClass().add("jm-spot-dot"); dot.setStyle("-fx-background-color:" + toHex(s.color()) + ";");
             Label fq = lbl(com.ars.fx.data.ClusterClient.fmtFreq(s.freqHz()), "jm-spot-fq"); fq.setMinWidth(54);
-            String need = spotWorked(s) ? "n" : "y";
+            boolean worked = spotWorked(s);
+            String need = !worked ? "y" : inContest ? "d" : "n";            // in a contest a worked spot is a dupe, and says so
             VBox txt = new VBox(1, hcall(s.call(), need),
                     lbl(s.band() + " · " + s.mode() + " · " + com.ars.fx.data.ClusterClient.age(s.arrivalMs()), "jm-spot-meta")); HBox.setHgrow(txt, Priority.ALWAYS);
             HBox row = new HBox(11, dot, fq, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jm-spot-row");
@@ -926,6 +928,11 @@ public final class JMapView {
     static Node hcall(String call, String need){
         HBox h = new HBox(7, lbl(call, "jm-spot-call")); h.setAlignment(Pos.CENTER_LEFT);
         if (need.equals("y")) h.getChildren().add(lbl("NEED","jhub-need"));
+        else if (need.equals("d")) {                                  // already worked in the open contest
+            h.getChildren().add(lbl("DUPE", "jhub-need", "dupe"));
+            h.getChildren().get(0).setStyle("-fx-strikethrough:true;-fx-text-fill:-ars-err;");
+            h.setOpacity(0.7);
+        }
         return h;
     }
 }
