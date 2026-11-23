@@ -113,7 +113,7 @@ final class JLogContestLog {
     }
 
     // ---- Cabrillo export --------------------------------------------------
-    static void exportCabrillo(ContestPlugin plugin) {
+    static void exportCabrillo(javafx.scene.Node anchor, ContestPlugin plugin) {
         try {
             ContestConfigBridge.syncStationToEngine();
             java.nio.file.Path dir = java.nio.file.Paths.get(System.getProperty("user.home"), ".j-log", "exports");
@@ -128,8 +128,13 @@ final class JLogContestLog {
                 java.nio.file.Files.writeString(out, com.ars.fx.data.LogExport.forExport(txt), java.nio.charset.StandardCharsets.US_ASCII);
             }
             setB4("Exported → " + out, "new");
+            Confirm.show(anchor, "Cabrillo exported",
+                    "Saved " + out + "\n\nUpload this file to the sponsor's log robot.",
+                    new Confirm.Choice("Done", false, null),
+                    new Confirm.Choice("Open folder", true, () -> com.ars.fx.data.LogDbInfo.openFolder(dir)));
         } catch (Exception e) {
             setB4("Export failed: " + e.getMessage(), "dupe");
+            Confirm.show(anchor, "Export failed", String.valueOf(e.getMessage()), new Confirm.Choice("OK", false, null));
         }
     }
 

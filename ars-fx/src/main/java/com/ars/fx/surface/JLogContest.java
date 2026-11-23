@@ -292,7 +292,7 @@ public final class JLogContest {
                 new Confirm.Choice("Stay", false, null),
                 new Confirm.Choice("Leave", true, () -> { ContestLogs.resetConfirmation(); Shell.navigate("hub"); })));
         Label export = lbl("Export Cabrillo ⤓", "jl-logbtn"); export.setStyle("-fx-cursor:hand;");
-        export.setOnMouseClicked(e -> exportCabrillo(plugin));
+        export.setOnMouseClicked(e -> exportCabrillo(export, plugin));
 
         Label times = lbl("Contest times\u2026", "jl-clearbtn"); times.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(times, "Set when this contest starts and ends (UTC) to get a clock with time left and off time");
