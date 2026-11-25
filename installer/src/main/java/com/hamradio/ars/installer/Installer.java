@@ -205,8 +205,10 @@ public final class Installer {
                 + "    <Menu>\n      <Name>ARS Suite</Name>\n"
                 + "      <Directory>ars-suite.directory</Directory>\n"
                 + "      <Include><Category>X-ARS-Suite</Category></Include>\n    </Menu>\n  </Menu>\n</Menu>\n";
-            // Cinnamon merges cinnamon-applications-merged; the other XDG desktops merge applications-merged.
-            for (String merged : new String[] {"applications-merged", "cinnamon-applications-merged"}) {
+            // Each desktop merges <its-menu-file>-merged: Cinnamon cinnamon-applications-merged, KDE Plasma
+            // plasma-applications-merged (kf5- on Plasma 5), the other XDG desktops applications-merged.
+            for (String merged : new String[] {"applications-merged", "cinnamon-applications-merged",
+                                               "plasma-applications-merged", "kf5-applications-merged"}) {
                 Path menus = home.resolve(".config/menus").resolve(merged);
                 Files.createDirectories(menus);
                 Files.writeString(menus.resolve("ars-suite.menu"), xml, StandardCharsets.UTF_8);
