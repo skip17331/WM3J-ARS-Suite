@@ -113,29 +113,46 @@ final class JLogContestLog {
     }
 
     // ---- Cabrillo export --------------------------------------------------
-    static void exportCabrillo(javafx.scene.Node anchor, ContestPlugin plugin) {
-        try {
-            ContestConfigBridge.syncStationToEngine();
-            java.nio.file.Path dir = java.nio.file.Paths.get(System.getProperty("user.home"), ".j-log", "exports");
-            java.nio.file.Files.createDirectories(dir);
-            java.nio.file.Path out = dir.resolve(plugin.getContestId() + "_" + HubConfig.call() + ".cbr");
-            com.ars.fx.data.ContestState.recompute();                // the score as the contest page shows it, freshly worked out
-            com.jlog.scoring.ContestScore sc = com.ars.fx.data.ContestState.score();
-            com.jlog.export.CabrilloExporter.export(plugin, out, new com.jlog.export.CabrilloExporter.Options(
-                    "WM3J ARS Suite " + com.ars.fx.AppVersion.current(), sc == null ? null : sc.score()));
-            if (com.ars.fx.data.LogExport.asciiOnly()) {            // J-Hub ▸ Data ▸ charset: ASCII
-                String txt = java.nio.file.Files.readString(out, java.nio.charset.StandardCharsets.UTF_8);
-                java.nio.file.Files.writeString(out, com.ars.fx.data.LogExport.forExport(txt), java.nio.charset.StandardCharsets.US_ASCII);
-            }
-            setB4("Exported → " + out, "new");
-            Confirm.show(anchor, "Cabrillo exported",
-                    "Saved " + out + "\n\nUpload this file to the sponsor's log robot.",
-                    new Confirm.Choice("Done", false, null),
-                    new Confirm.Choice("Open folder", true, () -> com.ars.fx.data.LogDbInfo.openFolder(dir)));
-        } catch (Exception e) {
-            setB4("Export failed: " + e.getMessage(), "dupe");
-            Confirm.show(anchor, "Export failed", String.valueOf(e.getMessage()), new Confirm.Choice("OK", false, null));
+    /** Write the plugin's Cabrillo log (from the contest database now open) to {@code out}. */
+    static void writeCabrillo(ContestPlugin plugin, java.nio.file.Path out) throws Exception {
+        ContestConfigBridge.syncStationToEngine();
+        if (out.getParent() != null) java.nio.file.Files.createDirectories(out.getParent());
+        com.ars.fx.data.ContestState.recompute();                // the score as the contest page shows it, freshly worked out
+        com.jlog.scoring.ContestScore sc = com.ars.fx.data.ContestState.score();
+        com.jlog.export.CabrilloExporter.export(plugin, out, new com.jlog.export.CabrilloExporter.Options(
+                "WM3J ARS Suite " + com.ars.fx.AppVersion.current(), sc == null ? null : sc.score()));
+        if (com.ars.fx.data.LogExport.asciiOnly()) {            // J-Hub ▸ Data ▸ charset: ASCII
+            String txt = java.nio.file.Files.readString(out, java.nio.charset.StandardCharsets.UTF_8);
+            java.nio.file.Files.writeString(out, com.ars.fx.data.LogExport.forExport(txt), java.nio.charset.StandardCharsets.US_ASCII);
         }
+    }
+
+    /** Ask where to save, then export. Works from any screen (the contest page button and J-Hub's database tools). */
+    static void exportCabrilloAs(javafx.scene.Node anchor, ContestPlugin plugin, java.util.function.Consumer<String> report) {
+        java.nio.file.Path dir = java.nio.file.Paths.get(System.getProperty("user.home"), ".j-log", "exports");
+        try { java.nio.file.Files.createDirectories(dir); } catch (Exception ignored) {}
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("Save Cabrillo log");
+        fc.setInitialDirectory(dir.toFile());
+        fc.setInitialFileName(plugin.getContestId() + "_" + HubConfig.call() + ".cbr");
+        fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Cabrillo (*.cbr, *.log)", "*.cbr", "*.log"));
+        java.io.File f = fc.showSaveDialog(anchor == null || anchor.getScene() == null ? null : anchor.getScene().getWindow());
+        if (f == null) return;
+        try {
+            writeCabrillo(plugin, f.toPath());
+            report.accept("\u2713 Cabrillo saved to " + f);
+        } catch (Exception e) {
+            report.accept("\u2717 Cabrillo export failed: " + e);
+        }
+    }
+
+    static void exportCabrillo(javafx.scene.Node anchor, ContestPlugin plugin) {
+        exportCabrilloAs(anchor, plugin, msg -> {
+            setB4(msg, msg.startsWith("\u2713") ? "new" : "dupe");
+            Confirm.show(anchor, msg.startsWith("\u2713") ? "Cabrillo exported" : "Export failed", msg
+                    + (msg.startsWith("\u2713") ? "\n\nUpload this file to the sponsor's log robot." : ""),
+                    new Confirm.Choice("OK", false, null));
+        });
     }
 
 }

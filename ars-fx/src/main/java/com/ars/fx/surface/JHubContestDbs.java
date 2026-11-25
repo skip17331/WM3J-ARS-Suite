@@ -76,7 +76,26 @@ final class JHubContestDbs {
                     if (i.current()) Shell.navigate("setup:logdb");   // the "in use" summary above must change too, so rebuild the page
                     else refresh.run();
                 })));
-        return row(i.fileName() + (i.current() ? "  · in use" : ""), meta(i), archive);
+        Label cab = JHubSetupPages.cfgBtn("Export Cabrillo");
+        cab.setOnMouseClicked(e -> exportCabrillo(cab, i, status));
+        HBox btns = new HBox(8, cab, archive); btns.setAlignment(Pos.CENTER_RIGHT);
+        return row(i.fileName() + (i.current() ? "  · in use" : ""), meta(i), btns);
+    }
+
+    /** Cabrillo for any contest database: it is opened for the export, then the one in use goes back. */
+    private static void exportCabrillo(Label anchor, Info i, Label status) {
+        com.jlog.plugin.ContestPlugin plugin = i.contestId().isBlank() ? null : com.jlog.plugin.PluginLoader.getInstance().getById(i.contestId());
+        if (plugin == null) { status.setText("\u2717 This database has no known contest yet, so there is no Cabrillo to make."); return; }
+        java.nio.file.Path prev = ContestLogs.current();
+        boolean swap = !prev.toAbsolutePath().equals(i.path().toAbsolutePath());
+        try {
+            if (swap) com.jlog.db.DatabaseManager.getInstance().useContestDb(i.path());
+            JLogContestLog.exportCabrilloAs(anchor, plugin, status::setText);
+        } catch (Exception ex) {
+            status.setText("\u2717 Cabrillo export failed: " + ex);
+        } finally {
+            if (swap) try { com.jlog.db.DatabaseManager.getInstance().useContestDb(prev); } catch (Exception ex) { status.setText("\u2717 Could not reopen " + prev + ": " + ex); }
+        }
     }
 
     private static HBox archivedRow(Info i, Label status, Runnable refresh) {
@@ -90,7 +109,7 @@ final class JHubContestDbs {
         return row(dir + i.fileName(), meta(i), restore);
     }
 
-    private static HBox row(String title, String meta, Label action) {
+    private static HBox row(String title, String meta, javafx.scene.Node action) {
         VBox txt = new VBox(2, lbl(title, "cfg-lt"), lbl(meta, "cfg-lh"));
         Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
         HBox r = new HBox(20, txt, sp, action); r.getStyleClass().add("cfg-row"); r.setAlignment(Pos.CENTER_LEFT);
