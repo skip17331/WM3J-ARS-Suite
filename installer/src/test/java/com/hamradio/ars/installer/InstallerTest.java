@@ -129,6 +129,8 @@ class InstallerTest {
         assertTrue(xml.contains("<Name>Amateur Radio</Name>") && xml.contains("<Name>ARS Suite</Name>"));
         assertTrue(xml.contains("X-ARS-Suite") && !xml.contains("X-ARS-Contest"));
         assertTrue(xml.contains("ars-suite-amateur-radio.directory") && xml.contains("ars-suite.directory"));
+        for (String m : new String[] {"cinnamon-applications-merged", "plasma-applications-merged", "kf5-applications-merged"})
+            assertTrue(Files.exists(dir.resolve(".config/menus").resolve(m).resolve("ars-suite.menu")), m);
         assertEquals("contest-menu", Files.readString(contest), "ARS Contest's menu file is left alone");
         assertTrue(Files.exists(dirs.resolve("ars-contest.directory")));
         assertFalse(Files.exists(menus.resolve("ars-amateur-radio.menu")), "the superseded Suite menu file is removed");

@@ -326,7 +326,7 @@ alone; to bring it up to date, use **Setup ▸ J-Learn content ▸ Update files*
 | `~/.j-learn/content/` | J-Learn chapters (editable; `content.backup` holds the previous copy after an update) |
 | `~/.j-sat/`, `~/.j-map/` | Orbital data and cached map data |
 | `~/.local/share/applications/ars-fx*.desktop` | Linux menu entries |
-| `~/.config/menus/{applications,cinnamon-applications}-merged/ars-suite.menu`, `~/.local/share/desktop-directories/ars-suite*.directory` | Linux menu folder (Amateur Radio ▸ ARS Suite) |
+| `~/.config/menus/{applications,cinnamon-applications,plasma-applications,kf5-applications}-merged/ars-suite.menu`, `~/.local/share/desktop-directories/ars-suite*.directory` | Linux menu folder (Amateur Radio ▸ ARS Suite) |
 | `~/Applications/ARS Suite*.app`, `~/Applications/J-*.app` | macOS app bundles |
 | `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Amateur Radio\ARS Suite\` | Windows shortcuts |
 
