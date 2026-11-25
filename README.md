@@ -233,7 +233,7 @@ cd ~/ARS_Suite
 ./ars-fx/ars-fx.sh                 # docked; or  --module log  (loose) / --hub (tray)
 ```
 
-Shortcuts appear in an **Amateur Radio** folder in your application menu
+Shortcuts appear in **Amateur Radio ▸ ARS Suite** in your application menu
 (GNOME, which has no folders, lists them directly) — **ARS Suite** (docked)
 plus a window per module and **ARS Suite Hub**. Arch /
 openSUSE / other distros — same flow, see [INSTALL.md](INSTALL.md) for the

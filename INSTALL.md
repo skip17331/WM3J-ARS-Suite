@@ -154,7 +154,7 @@ cd $HOME\ARS_Suite
 ```
 
 Prefer no terminal? Open the `ARS_Suite` folder in Explorer and double-click **`install.bat`**. It installs Java and
-Maven if they are missing, builds the Windows app and adds Start-menu shortcuts under **ARS Suite**. The first run takes
+Maven if they are missing, builds the Windows app and adds Start-menu shortcuts under **Amateur Radio ▸ ARS Suite**. The first run takes
 about 5–10 minutes. Flags: `-SkipDeps`, `-SkipBuild`.
 
 When it finishes, press the Windows key, type **ARS Suite** and press Enter. If anything goes wrong, `install.bat` saves
@@ -326,8 +326,9 @@ alone; to bring it up to date, use **Setup ▸ J-Learn content ▸ Update files*
 | `~/.j-learn/content/` | J-Learn chapters (editable; `content.backup` holds the previous copy after an update) |
 | `~/.j-sat/`, `~/.j-map/` | Orbital data and cached map data |
 | `~/.local/share/applications/ars-fx*.desktop` | Linux menu entries |
+| `~/.config/menus/{applications,cinnamon-applications}-merged/ars-suite.menu`, `~/.local/share/desktop-directories/ars-suite*.directory` | Linux menu folder (Amateur Radio ▸ ARS Suite) |
 | `~/Applications/ARS Suite*.app`, `~/Applications/J-*.app` | macOS app bundles |
-| `%APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\` | Windows shortcuts |
+| `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Amateur Radio\ARS Suite\` | Windows shortcuts |
 
 Back up `~/.j-log/`, `~/.j-hub/` and `~/.j-vault/` and you have your whole station, except the passwords kept in the
 system keyring: after restoring onto a new computer, enter them again in Setup.

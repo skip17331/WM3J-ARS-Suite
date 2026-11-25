@@ -110,4 +110,44 @@ class InstallerTest {
         assertEquals(256, inner.getWidth());
         assertEquals(256, inner.getHeight());
     }
+
+    @Test
+    void menuFolderIsOursAndNeverContests() throws Exception {
+        Path menus = dir.resolve(".config/menus/applications-merged");
+        Files.createDirectories(menus);
+        Path contest = menus.resolve("ars-contest.menu");
+        Files.writeString(contest, "contest-menu");
+        Files.writeString(menus.resolve("ars-amateur-radio.menu"), "old");              // the Suite's own earlier file
+        Path dirs = dir.resolve(".local/share/desktop-directories");
+        Files.createDirectories(dirs);
+        Files.writeString(dirs.resolve("ars-contest.directory"), "c");
+        Files.writeString(dirs.resolve("ars-amateur-radio.directory"), "old");
+
+        Installer.writeAmateurRadioMenu(dir, dir.resolve(".local/share/icons"));
+
+        String xml = Files.readString(menus.resolve("ars-suite.menu"));
+        assertTrue(xml.contains("<Name>Amateur Radio</Name>") && xml.contains("<Name>ARS Suite</Name>"));
+        assertTrue(xml.contains("X-ARS-Suite") && !xml.contains("X-ARS-Contest"));
+        assertTrue(xml.contains("ars-suite-amateur-radio.directory") && xml.contains("ars-suite.directory"));
+        assertEquals("contest-menu", Files.readString(contest), "ARS Contest's menu file is left alone");
+        assertTrue(Files.exists(dirs.resolve("ars-contest.directory")));
+        assertFalse(Files.exists(menus.resolve("ars-amateur-radio.menu")), "the superseded Suite menu file is removed");
+        assertFalse(Files.exists(dirs.resolve("ars-amateur-radio.directory")));
+        assertTrue(Files.readString(dirs.resolve("ars-suite.directory")).contains("Name=ARS Suite"));
+    }
+
+    @Test
+    void oldStartMenuFolderIsClearedOnlyWhenItHoldsJustOurShortcuts() throws Exception {
+        Path old = dir.resolve("Programs/ARS Suite");
+        Files.createDirectories(old);
+        Files.writeString(old.resolve("J-Hub.lnk"), "x");
+        Installer.migrateOldStartMenuFolder(old, new ArrayList<>());
+        assertFalse(Files.exists(old));
+
+        Files.createDirectories(old);
+        Files.writeString(old.resolve("J-Hub.lnk"), "x");
+        Files.writeString(old.resolve("notes.txt"), "mine");
+        Installer.migrateOldStartMenuFolder(old, new ArrayList<>());
+        assertTrue(Files.exists(old.resolve("notes.txt")), "anything that is not a Suite shortcut stays");
+    }
 }
