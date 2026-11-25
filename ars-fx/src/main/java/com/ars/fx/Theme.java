@@ -21,7 +21,8 @@ public final class Theme {
 
     public static void apply(Scene scene, boolean light) {
         loadFonts();
-        scene.getStylesheets().add(Theme.class.getResource("/com/ars/fx/css/ars.css").toExternalForm());
+        scene.getStylesheets().add(TextSize.url("/com/ars/fx/css/ars.css"));      // text size: see TextSize
+        TextSize.track(scene);
         if (light) scene.getRoot().getStyleClass().add("ars-light");
     }
 }

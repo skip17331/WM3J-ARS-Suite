@@ -572,7 +572,9 @@ final class JHubSetupPages {
             cfgRow("Colour scheme", "click to switch the scheme for the whole suite", theme),
             cfgRow("Reduce effects", "no sliding, flashing or glowing when something new arrives (new spots, changed counts, live lights)", cToggle("ui.reduceEffects", false)));
         VBox size = section("SIZE",
-            cfgRow("Interface size", "scales the whole window together (text, widths, drawers); applies at once. Pop-up windows keep their own size",
+            cfgRow("Text size", "changes the size of the type only; the layout stays where it is. Applies at once, in every window",
+                    cSeg(com.ars.fx.TextSize.KEY, com.ars.fx.TextSize.SIZES, com.ars.fx.TextSize.defaultIndex())),
+            cfgRow("Window scale", "zooms the whole main window together (text, widths, drawers). Independent of Text size: the two multiply. Pop-up windows keep their own size",
                     cSeg(com.ars.fx.UiStyle.SCALE_KEY, com.ars.fx.UiStyle.SCALES, com.ars.fx.UiStyle.scaleDefaultIndex())));
         VBox layout = section("DASHBOARD LAYOUT",
             cfgRow("Stack cards in rows", "New QSO, DX Cluster and the Recent log each get a row. Off puts New QSO and DX Cluster side by side when there is room. Open the dashboard again to see a change",

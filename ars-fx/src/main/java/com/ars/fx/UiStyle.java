@@ -54,16 +54,16 @@ public final class UiStyle {
         if (root == null) return;
         for (Style s : DASHBOARD_STYLES) {
             if (s.css() == null) continue;
-            var url = UiStyle.class.getResource(s.css());
-            if (url != null) root.getStylesheets().remove(url.toExternalForm());
+            final String res = s.css();
+            root.getStylesheets().removeIf(x -> TextSize.isOurs(x, res));
         }
         root.getStyleClass().remove(SCOPE_CLASS);
         Style cur = dashboard();
         if (cur.css() == null) return;
-        var url = UiStyle.class.getResource(cur.css());
+        String url = TextSize.url(cur.css());
         if (url == null) return;
         root.getStyleClass().add(SCOPE_CLASS);
-        root.getStylesheets().add(url.toExternalForm());
+        root.getStylesheets().add(url);
     }
 
     /** The saved UI size as a factor (1.0 = 100%). A bad or missing value is 1.0, so a broken config never stops the app starting. */
