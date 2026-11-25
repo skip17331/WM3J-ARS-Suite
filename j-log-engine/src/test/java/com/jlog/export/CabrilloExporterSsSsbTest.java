@@ -31,8 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * structural invariants the contest sponsor checks first.
  *
  * SS Phone exchange:
- *   Sent: NR PREC CALL CHK SECT — e.g. "1 B WM3J 83 MDC"
- *   Rcvd: same — e.g. "47 A K1AR 56 CT"
+ *   Sent: NR PREC CALL CHK SECT — e.g. "1 B 83 MDC"
+ *   Rcvd: same — e.g. "47 A 56 CT"
  *
  * Per the plugin's entryFields declaration order (after the special ids
  * callsign/serial_rcvd/serial_sent/band consume no slot):
@@ -139,8 +139,8 @@ class CabrilloExporterSsSsbTest {
         assertEquals(12, qsoLineCount, "every inserted non-dupe QSO must produce a QSO: line");
 
         // Spot-check one QSO line: K1AR is the first row. Expected sent exchange
-        // is "1 B WM3J 83 MDC" (per cabrilloSent order with station constants),
-        // received is "47 A K1AR 56 CT".
+        // is "1 B 83 MDC" (per cabrilloSent order with station constants),
+        // received is "47 A 56 CT".
         String k1ar = lines.stream()
             .filter(l -> l.startsWith("QSO:") && l.contains("K1AR"))
             .findFirst()

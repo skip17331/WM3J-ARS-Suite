@@ -185,8 +185,8 @@
     "sections_remaining"
   ],
 
-  "cabrilloSent": ["serial_sent", "prec_sent", "mycall", "check_sent", "sect_sent"],
-  "cabrilloRcvd": ["serial_rcvd", "precedence", "callsign", "check", "section"],
+  "cabrilloSent": ["serial_sent", "prec_sent", "check_sent", "sect_sent"],
+  "cabrilloRcvd": ["serial_rcvd", "precedence", "check", "section"],
 
   "sections": [
     "CT","EMA","ME","NH","RI","VT","WMA",
