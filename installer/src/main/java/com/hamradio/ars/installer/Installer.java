@@ -33,7 +33,7 @@ import javax.imageio.ImageIO;
  *       so source-tree updates propagate without re-running the installer.</li>
  *   <li><b>Windows</b> — generates {@code .bat} launchers if missing,
  *       creates Start-Menu shortcuts under
- *       {@code %APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite\}
+ *       {@code %APPDATA%\Microsoft\Windows\Start Menu\Programs\Amateur Radio\ARS Suite\}
  *       via a PowerShell {@code WScript.Shell} snippet.</li>
  * </ul>
  *
@@ -181,27 +181,36 @@ public final class Installer {
         pruneStale(iconDir, "ars-fx*.png",     keptIcons,    pruned);
     }
 
-    /** Groups every suite shortcut (Categories=X-ARS-Suite) under one "Amateur Radio" application-menu folder
-     *  instead of scattering them across Internet / Education / Office ... Desktops that honour XDG menu files
-     *  (KDE, Xfce, MATE, Cinnamon, LXQt) show the folder; GNOME's app grid has no folders and lists them as usual. */
-    private static void writeAmateurRadioMenu(Path home, Path iconDir) {
+    /** Groups every suite shortcut (Categories=X-ARS-Suite) under Applications > Amateur Radio > ARS Suite
+     *  instead of scattering them across Internet / Education / Office ... The "Amateur Radio" parent is merged by
+     *  name with the one ARS Contest writes, so the two apps sit side by side; each has its own directory file and
+     *  its own menu file, and this method never reads, writes or removes anything named ars-contest*. Desktops that
+     *  honour XDG menu files (KDE, Xfce, MATE, Cinnamon, LXQt) show the folder; GNOME's app grid has no folders and
+     *  lists the shortcuts as usual. */
+    static void writeAmateurRadioMenu(Path home, Path iconDir) {
         try {
             Path dirs = home.resolve(".local/share/desktop-directories");
             Files.createDirectories(dirs);
             Path icon = iconDir.resolve("ars-fx.png");
-            StringBuilder d = new StringBuilder("[Desktop Entry]\nType=Directory\nName=Amateur Radio\n");
-            d.append("Icon=").append(Files.exists(icon) ? icon.toString() : "applications-other").append('\n');
-            Files.writeString(dirs.resolve("ars-amateur-radio.directory"), d.toString(), StandardCharsets.UTF_8);
+            String iconLine = "Icon=" + (Files.exists(icon) ? icon.toString() : "applications-other") + "\n";
+            Files.writeString(dirs.resolve("ars-suite-amateur-radio.directory"),
+                "[Desktop Entry]\nType=Directory\nName=Amateur Radio\nIcon=applications-other\n", StandardCharsets.UTF_8);
+            Files.writeString(dirs.resolve("ars-suite.directory"),
+                "[Desktop Entry]\nType=Directory\nName=ARS Suite\n" + iconLine, StandardCharsets.UTF_8);
+            Files.deleteIfExists(dirs.resolve("ars-amateur-radio.directory"));     // the Suite's own earlier file, now superseded
             String xml = "<!DOCTYPE Menu PUBLIC \"-//freedesktop//DTD Menu 1.0//EN\"\n"
                 + " \"http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd\">\n"
                 + "<Menu>\n  <Name>Applications</Name>\n  <Menu>\n    <Name>Amateur Radio</Name>\n"
-                + "    <Directory>ars-amateur-radio.directory</Directory>\n"
-                + "    <Include><Category>X-ARS-Suite</Category></Include>\n  </Menu>\n</Menu>\n";
+                + "    <Directory>ars-suite-amateur-radio.directory</Directory>\n"
+                + "    <Menu>\n      <Name>ARS Suite</Name>\n"
+                + "      <Directory>ars-suite.directory</Directory>\n"
+                + "      <Include><Category>X-ARS-Suite</Category></Include>\n    </Menu>\n  </Menu>\n</Menu>\n";
             // Cinnamon merges cinnamon-applications-merged; the other XDG desktops merge applications-merged.
             for (String merged : new String[] {"applications-merged", "cinnamon-applications-merged"}) {
                 Path menus = home.resolve(".config/menus").resolve(merged);
                 Files.createDirectories(menus);
-                Files.writeString(menus.resolve("ars-amateur-radio.menu"), xml, StandardCharsets.UTF_8);
+                Files.writeString(menus.resolve("ars-suite.menu"), xml, StandardCharsets.UTF_8);
+                Files.deleteIfExists(menus.resolve("ars-amateur-radio.menu"));    // would show a second, flat folder
             }
             try { new ProcessBuilder("update-desktop-database", home.resolve(".local/share/applications").toString())
                     .redirectErrorStream(true).start(); } catch (Exception ignored) {}
@@ -212,6 +221,15 @@ public final class Installer {
      *  unified app can clear them. Deliberately explicit — NOT a glob — so unrelated ars-* apps survive. */
     private static final Set<String> LEGACY_NAMES = Set.of(
         "j-hub", "j-log", "j-map", "j-digi", "j-bridge", "j-sat", "j-vault", "j-learn", "morse-trainer");
+
+    /** The Suite used to live in Programs\\ARS Suite. Remove only our own .lnk files there, then the folder if it is empty. */
+    static void migrateOldStartMenuFolder(Path old, List<String> pruned) {
+        if (!Files.isDirectory(old)) return;
+        try (var ds = Files.newDirectoryStream(old, "*.lnk")) {
+            for (Path p : ds) try { if (Files.deleteIfExists(p)) pruned.add(p.toString()); } catch (Exception ignored) {}
+        } catch (Exception ignored) {}
+        try { Files.deleteIfExists(old); } catch (Exception ignored) {}      // fails (and stays) when anything else is in it
+    }
 
     private static void removeIfPresent(Path p, List<String> pruned) {
         try { if (Files.deleteIfExists(p)) pruned.add(p.toString()); } catch (Exception ignored) {}
@@ -413,15 +431,16 @@ public final class Installer {
     private static void installWindows(Path sourceRoot, JsonArray modules,
                                        List<String> installed, List<String> skipped,
                                        List<String> pruned) throws Exception {
-        // Start Menu folder: %APPDATA%\Microsoft\Windows\Start Menu\Programs\ARS Suite
+        // Start Menu folder: %APPDATA%\Microsoft\Windows\Start Menu\Programs\Amateur Radio\ARS Suite
         String appData = System.getenv("APPDATA");
         if (appData == null || appData.isBlank()) {
             warn("APPDATA is not set — falling back to user.home\\AppData\\Roaming");
             appData = System.getProperty("user.home") + "\\AppData\\Roaming";
         }
-        Path startMenu = Paths.get(appData,
-            "Microsoft", "Windows", "Start Menu", "Programs", "ARS Suite");
+        Path programs = Paths.get(appData, "Microsoft", "Windows", "Start Menu", "Programs");
+        Path startMenu = programs.resolve("Amateur Radio").resolve("ARS Suite");   // next to ARS Contest's Amateur Radio\ARS Contest
         Files.createDirectories(startMenu);
+        migrateOldStartMenuFolder(programs.resolve("ARS Suite"), pruned);
 
         // The whole "ARS Suite" Start-Menu folder is ours, so any .lnk this run
         // does not write is a leftover from an earlier install — prune it below.

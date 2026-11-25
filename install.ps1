@@ -224,7 +224,7 @@ try {
 
     Section 'Done - ARS Suite is installed'
     Info 'Open the Start Menu, type  ARS Suite , press Enter.'
-    Info 'Each module (J-Log, J-Map, J-Sat, ...) also has its own entry in the ARS Suite folder.'
+    Info 'Each module (J-Log, J-Map, J-Sat, ...) also has its own entry in the Amateur Radio > ARS Suite folder.'
     Info 'Start with J-Hub > Station: enter your callsign and grid square.'
     Info "(A copy of this run was saved to $LogFile)"
     $ok = $true
