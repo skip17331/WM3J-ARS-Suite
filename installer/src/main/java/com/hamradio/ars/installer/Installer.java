@@ -214,9 +214,26 @@ public final class Installer {
                 Files.writeString(menus.resolve("ars-suite.menu"), xml, StandardCharsets.UTF_8);
                 Files.deleteIfExists(menus.resolve("ars-amateur-radio.menu"));    // would show a second, flat folder
             }
-            try { new ProcessBuilder("update-desktop-database", home.resolve(".local/share/applications").toString())
-                    .redirectErrorStream(true).start(); } catch (Exception ignored) {}
+            refreshMenuCaches(home);
         } catch (Exception e) { System.err.println("  (could not write the Amateur Radio menu folder: " + e.getMessage() + ")"); }
+    }
+
+    /** Make the desktop re-read the menu files now. KDE Plasma serves its launcher from the ksycoca cache, which
+     *  {@code update-desktop-database} does not touch, so without {@code kbuildsycoca} a fresh install can sit
+     *  unseen until something else invalidates the cache. Every command is best-effort and skipped when absent. */
+    static void refreshMenuCaches(Path home) {
+        String apps = home.resolve(".local/share/applications").toString();
+        for (String[] cmd : new String[][] {
+                {"update-desktop-database", apps},
+                {"xdg-desktop-menu", "forceupdate"},
+                {"kbuildsycoca6", "--noincremental"},
+                {"kbuildsycoca5", "--noincremental"}}) {
+            try {
+                Process p = new ProcessBuilder(cmd).redirectErrorStream(true)
+                    .redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
+                if (!p.waitFor(30, TimeUnit.SECONDS)) p.destroyForcibly();
+            } catch (Exception ignored) {}
+        }
     }
 
     /** Shortcut/icon basenames written by the old per-program installer (pre-ars-fx), so the new
@@ -440,7 +457,7 @@ public final class Installer {
             appData = System.getProperty("user.home") + "\\AppData\\Roaming";
         }
         Path programs = Paths.get(appData, "Microsoft", "Windows", "Start Menu", "Programs");
-        Path startMenu = programs.resolve("Amateur Radio").resolve("ARS Suite");   // next to ARS Contest's Amateur Radio\ARS Contest
+        Path startMenu = programs.resolve("Amateur Radio").resolve("ARS Suite");   // next to the Contest Suite's Amateur Radio\Contest Suite
         Files.createDirectories(startMenu);
         migrateOldStartMenuFolder(programs.resolve("ARS Suite"), pruned);
 
