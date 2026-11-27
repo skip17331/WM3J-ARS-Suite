@@ -65,7 +65,7 @@ public class Launcher extends Application {
         com.ars.fx.shell.DeleteKey.install(scene);
         Shell.installPageKeys(scene);
         com.ars.fx.shell.Fx.steadyCaret(scene);
-        show(System.getProperty("surface", Shell.home()));      // the dashboard, or the contest page if that is where the app was left
+        show(System.getProperty("surface", Shell.home()));      // the dashboard
 
         stage.setTitle("ARS Suite");
         AppIcons.apply(stage, null);                    // the app mark — without it the panel shows a generic gear
@@ -81,9 +81,7 @@ public class Launcher extends Application {
         com.ars.fx.data.MostWanted.init();               // Club Log Most Wanted: refreshed at most monthly, only with a token set   // watch-list / needed-spot alerts; off until switched on in J-Hub ▸ Setup ▸ DX cluster
         com.ars.fx.data.CtyUpdater.start();             // weekly refresh of the country files; off via J-Hub ▸ Station ▸ Updates
         com.ars.fx.data.UpdateChecker.start();          // once a day, anonymous; off via J-Hub ▸ Station ▸ Updates
-        com.ars.fx.data.N1mmBroadcast.init();
         com.ars.fx.data.PropagationCheck.init();
-        com.ars.fx.net.ContestNetwork.init();                              // the contest network (multi-operator); off until Host or Join is chosen in J-Hub ▸ Data                       // rig reports for the N1MM+-compatible broadcast; sends nothing until switched on in J-Hub ▸ Data
         new Thread(com.ars.fx.data.LegalDocs::installBundled, "legal-docs").start();   // local copies of the licence and notices
     }
 
@@ -147,8 +145,6 @@ public class Launcher extends Application {
         if (id.equals("workshop")) { com.ars.fx.surface.JLearnView.requestWorkshop(); id = "learn"; }
         String previous = Shell.currentSurface;
         Shell.currentSurface = id;
-        if (id.equals("log") || id.equals("logc")) Shell.lastLogSurface = id;   // remember J-Log's mode
-        if (id.equals("hub") || id.equals("logc")) Shell.setHome(id);            // the dock's Dashboard entry and the next start return here
         Region surface = buildSurface(id);
         host.getChildren().setAll(surface);
         if (!id.equals(previous)) {       // a short fade when the screen changes - but not on a rebuild of the same one (J-Sat does that every ~2 s)
@@ -180,7 +176,6 @@ public class Launcher extends Application {
         if (id.startsWith("setup:")) return com.ars.fx.surface.JHubSetup.build(id.substring("setup:".length()));
         switch (id) {
             case "log":    return com.ars.fx.surface.JLogCockpit.build();
-            case "logc":   return com.ars.fx.surface.JLogContest.build();
             case "hub":      return com.ars.fx.surface.JHubDashboard.build();
             // J-Hub setup is one screen with its own left menu; these ids open it on the matching section
             case "station":  return com.ars.fx.surface.JHubSetup.build("station");

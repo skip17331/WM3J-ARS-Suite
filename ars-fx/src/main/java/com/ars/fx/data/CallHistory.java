@@ -1,8 +1,5 @@
 package com.ars.fx.data;
 
-import com.jlog.model.QsoRecord;
-import com.jlog.plugin.ContestPlugin;
-import com.jlog.plugin.ContestPlugin.FieldDef;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,7 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,8 +28,7 @@ import java.util.regex.Pattern;
  *
  * <p>It learns from the operator's own QSOs (contest logs, as they are made or on a rebuild, and the normal log), and can be
  * seeded from a call history file in the common CSV form (N1MM+'s {@code !!Order!!,Call,Name,...} files, or any CSV with a
- * Call column). Values the operator logged win over imported ones. Everything is a hint: a value is only used where the
- * contest accepts it (see {@code JLogContest}), and the operator checks it before logging.
+ * Call column). Values the operator logged win over imported ones. Everything is a hint.
  */
 public final class CallHistory {
     private CallHistory() {}
@@ -42,8 +37,6 @@ public final class CallHistory {
     public static final List<String> KEYS = List.of("name", "state", "section", "cqz", "ituz", "grid", "prec", "check", "age");
 
     private static final int SRC_IMPORTED = 0, SRC_LOGGED = 1;
-    /** Prefix of the key a QSO party county is kept under: {@code county:FL}. A county code means nothing in another state's party. */
-    public static final String COUNTY = "county:";
 
     private static Path dirOverride;
     static void setDirForTest(Path p) { dirOverride = p; cache.clear(); }
@@ -67,25 +60,6 @@ public final class CallHistory {
         return c;
     }
 
-    // ---- what a contest field means --------------------------------------------------------------------
-
-    /** The history key a contest entry field holds, or null when the field is not something a station keeps (reports, serials, power, class...). */
-    public static String keyForField(String fieldId) {
-        if (fieldId == null) return null;
-        return switch (fieldId) {
-            case "state_prov_rcvd", "state_rcvd" -> "state";
-            case "section", "sect_rcvd" -> "section";
-            case "cq_zone" -> "cqz";
-            case "zone_hq_rcvd" -> "ituz";
-            case "grid_rcvd" -> "grid";
-            case "name_rcvd" -> "name";
-            case "precedence" -> "prec";
-            case "check" -> "check";
-            case "age_rcvd" -> "age";
-            default -> null;
-        };
-    }
-
     private static final Set<String> STATES = Set.of("AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME",
             "MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
             "VA","WA","WV","WI","WY","PR","VI","GU","AS","MP","AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT");
@@ -97,7 +71,6 @@ public final class CallHistory {
         if (raw == null) return null;
         String v = raw.strip().toUpperCase(Locale.ROOT);
         if (v.isEmpty()) return null;
-        if (key.startsWith(COUNTY)) return v.matches("[A-Z0-9]{2,6}") ? v : null;      // a county code of one QSO party's state
         switch (key) {
             case "state":   return STATES.contains(v) ? v : null;              // a county, a DX station's power... is not a state
             case "section": return SECTION.matcher(v).matches() ? v : null;
@@ -188,54 +161,6 @@ public final class CallHistory {
         return touched;
     }
 
-    /** The history values a contest QSO carries, by key (through the contest's own field layout). */
-    public static Map<String, String> fromContestQso(ContestPlugin plugin, QsoRecord q) {
-        Map<String, String> m = new HashMap<>();
-        if (plugin == null || q == null || plugin.getEntryFields() == null) return m;
-        for (FieldDef fd : plugin.getEntryFields()) {
-            if (fd.isConstant()) continue;
-            String key = keyForField(fd.getId());
-            String slot = key == null ? null : plugin.fieldSlotColumn(fd.getId());
-            if (slot == null) continue;
-            String v = switch (slot) {
-                case "field1" -> q.getContestField1();
-                case "field2" -> q.getContestField2();
-                case "field3" -> q.getContestField3();
-                case "field4" -> q.getContestField4();
-                case "field5" -> q.getContestField5();
-                default -> null;
-            };
-            if (v == null || v.isBlank()) continue;
-            if (key.equals("state") && clean("state", v) == null && QsoPartySide.isParty(plugin)
-                    && QsoPartySide.counties(plugin).contains(v.strip().toUpperCase(Locale.ROOT))) {
-                m.put(COUNTY + QsoPartySide.partyState(plugin), v);                       // the station is in the party's state: remember its county
-                continue;
-            }
-            m.put(key, v);
-        }
-        return m;
-    }
-
-    /** The history keys to try, best first, for a contest field: in a QSO party a station's county before its state. */
-    public static List<String> keysForField(ContestPlugin plugin, String fieldId) {
-        String key = keyForField(fieldId);
-        if (key == null) return List.of();
-        if (key.equals("state") && QsoPartySide.isParty(plugin)) return List.of(COUNTY + QsoPartySide.partyState(plugin), "state");
-        return List.of(key);
-    }
-
-    /** Remember what a logged contest QSO showed. Cheap; call it after each QSO is saved. */
-    public static void learn(ContestPlugin plugin, QsoRecord q) {
-        if (q == null || q.getCallsign() == null) return;
-        write(Map.of(q.getCallsign(), fromContestQso(plugin, q)), SRC_LOGGED);
-    }
-
-    private static final java.util.concurrent.ExecutorService LEARNER = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "call-history-learn"); t.setDaemon(true); return t;
-    });
-    /** As {@link #learn}, but on a background thread of its own (for QSOs that arrive in bulk, such as the contest network catching up). */
-    public static void learnAsync(ContestPlugin plugin, QsoRecord q) { LEARNER.execute(() -> learn(plugin, q)); }
-
     /** Learn from QSOs just imported from an ADIF file: the other station's name, state, grid and zones. */
     public static int learnFromAdif(List<Map<String, String>> records) {
         Map<String, Map<String, String>> all = new HashMap<>();
@@ -255,17 +180,9 @@ public final class CallHistory {
     /** Result of a rebuild or import: calls touched, and a message when something went wrong. */
     public record Result(int calls, String error) { public boolean ok() { return error == null; } }
 
-    /** Learn from every contest log and the normal log on disk. */
+    /** Learn from the log on disk. */
     public static Result rebuildFromLogs() {
         Map<String, Map<String, String>> all = new HashMap<>();
-        try {
-            for (ContestPlugin p : com.jlog.plugin.PluginLoader.getInstance().getAvailablePlugins()) {
-                for (QsoRecord q : com.jlog.db.ContestQsoDao.getInstance().fetchByContest(p.getContestId())) {
-                    if (q.getCallsign() == null) continue;
-                    all.computeIfAbsent(baseCall(q.getCallsign()), k -> new HashMap<>()).putAll(fromContestQso(p, q));
-                }
-            }
-        } catch (Exception e) { /* a contest DB that is absent just adds nothing */ }
         for (JLogDb.QsoExport q : JLogDb.allForExport()) {
             if (q.call() == null) continue;
             Map<String, String> m = all.computeIfAbsent(baseCall(q.call()), k -> new HashMap<>());
@@ -329,16 +246,5 @@ public final class CallHistory {
     public static void clear() {
         try (Connection con = open(); Statement st = con.createStatement()) { st.execute("DELETE FROM call_history"); } catch (Exception ignored) { }
         cache.clear();
-    }
-
-    /** For callers that need the keys a contest can use: the history key of each non-constant entry field, in field order. */
-    public static List<String[]> usableFields(ContestPlugin plugin) {
-        List<String[]> out = new ArrayList<>();
-        if (plugin == null || plugin.getEntryFields() == null) return out;
-        for (FieldDef fd : plugin.getEntryFields()) {
-            String key = fd.isConstant() ? null : keyForField(fd.getId());
-            if (key != null) out.add(new String[]{fd.getId(), key});
-        }
-        return out;
     }
 }

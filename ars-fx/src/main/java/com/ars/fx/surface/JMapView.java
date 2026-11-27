@@ -182,29 +182,8 @@ public final class JMapView {
         if (n - workedCallsAt > 5000) { workedCallsCache = new java.util.HashSet<>(com.ars.fx.data.JLogDb.distinctCalls()); workedCallsAt = n; }
         return workedCallsCache;
     }
-    private static final java.util.Map<String, Boolean> contestDupeMemo = new java.util.concurrent.ConcurrentHashMap<>();
-    private static long contestDupeAt = 0;
-    /**
-     * Is this spot already worked? With a contest open: a dupe by that contest's own rules (same call on the same band and mode, or whatever the contest
-     * says), as the dashboard's cluster list judges it; before, J-Map asked the normal log whether the call had ever been worked, so a station worked in
-     * the contest still showed as needed. With no contest: the call is in the normal log. The contest answers are kept for 5 seconds (the repaint asks
-     * for every spot), and re-read from the database because an undocked J-Map is another process from the one logging.
-     */
-    static boolean spotWorked(MapSpot s) {
-        String call = s.call().toUpperCase();
-        if (com.ars.fx.data.ContestState.activeId().isBlank()) return workedCalls().contains(call);
-        com.ars.fx.data.ContestState.ensureLoaded();
-        com.jlog.plugin.ContestPlugin plugin = com.ars.fx.data.ContestState.plugin();
-        if (plugin == null) return workedCalls().contains(call);
-        long n = System.currentTimeMillis();
-        if (n - contestDupeAt > 5000) { contestDupeMemo.clear(); contestDupeAt = n; }
-        return contestDupeMemo.computeIfAbsent(call + "|" + s.band() + "|" + s.mode(), k -> {
-            try {
-                com.jlog.model.QsoRecord cand = com.ars.fx.data.MultCheck.candidateOf(plugin, call, s.band(), s.mode());
-                return com.jlog.scoring.ContestScorer.isDupe(plugin, cand, com.jlog.db.ContestQsoDao.getInstance().findByCallsign(plugin.getContestId(), call));
-            } catch (Exception e) { return false; }
-        });
-    }
+    /** Is this spot already worked? True when the call is in the log. */
+    static boolean spotWorked(MapSpot s) { return workedCalls().contains(s.call().toUpperCase()); }
     /** "Needed only" — hide spots that are already worked. */
     static boolean spotHidden(MapSpot s) { return ovNeededOnly && spotWorked(s); }
 
@@ -883,13 +862,12 @@ public final class JMapView {
             e.setPadding(new Insets(10, 2, 10, 2)); spots.getChildren().add(e); return;
         }
         int n = 0;
-        boolean inContest = !com.ars.fx.data.ContestState.activeId().isBlank();
         for (MapSpot s : list) {
             if (n++ >= 40) break;
             Region dot = new Region(); dot.getStyleClass().add("jm-spot-dot"); dot.setStyle("-fx-background-color:" + toHex(s.color()) + ";");
             Label fq = lbl(com.ars.fx.data.ClusterClient.fmtFreq(s.freqHz()), "jm-spot-fq"); fq.setMinWidth(54);
             boolean worked = spotWorked(s);
-            String need = !worked ? "y" : inContest ? "d" : "n";            // in a contest a worked spot is a dupe, and says so
+            String need = !worked ? "y" : "n";
             VBox txt = new VBox(1, hcall(s.call(), need),
                     lbl(s.band() + " · " + s.mode() + " · " + com.ars.fx.data.ClusterClient.age(s.arrivalMs()), "jm-spot-meta")); HBox.setHgrow(txt, Priority.ALWAYS);
             HBox row = new HBox(11, dot, fq, txt); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("jm-spot-row");

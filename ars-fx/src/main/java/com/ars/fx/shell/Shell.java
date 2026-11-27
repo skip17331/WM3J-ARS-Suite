@@ -42,20 +42,13 @@ public final class Shell {
     public static Runnable onThemeChanged;
     /** Id of the surface currently on screen (set by the host on every show); spot-click prefill checks it. */
     public static volatile String currentSurface = "hub";
-    /** Last J-Log sub-surface shown (log vs logc), so the dock returns the operator to contest mode
-     *  if that's where they were when they hopped to another module. Updated by the host on show. */
-    public static volatile String lastLogSurface = "log";
     /** Solo mode: a single module launched on its own (J-Map/J-Sat) — no module dock, no cross-nav. */
     public static volatile boolean solo = false;
     /** In solo mode, the operating module this window hosts — so the J-Hub settings pages can offer a
      *  "← Back to <module>" link (there is no dock to navigate back through). Set by the host on startup. */
     public static volatile String soloModule = "map";
-    /** Where the dock's Dashboard entry (and the next start) goes: the hub dashboard, or the contest page when that is where the operator last was. */
-    public static String home() { return "logc".equals(com.ars.fx.data.HubConfig.get("ui.home", "hub")) ? "logc" : "hub"; }
-    public static void setHome(String id) {
-        String v = "logc".equals(id) ? "logc" : "hub";
-        if (!v.equals(home()) || com.ars.fx.data.HubConfig.get("ui.home", "").isEmpty()) com.ars.fx.data.HubConfig.set("ui.home", v);
-    }
+    /** Where the dock's Dashboard entry (and the next start) goes. */
+    public static String home() { return "hub"; }
     public static void navigate(String id) { if (onNavigate != null) onNavigate.accept(id); }
 
     /** Dashboard theme button: advance the suite-wide scheme (clears per-module overrides). */
@@ -147,12 +140,6 @@ public final class Shell {
         return new QslToggle(com.ars.fx.data.QslLabel.KEY_PRINT_ON_SAVE, "Print label on save (beta)",
                 "Print the labels ticked in Setup ▸ Label printers (QSL and / or address) whenever a QSO is saved");
     }
-    /** The contest page's own switch: a separate setting, off by default, so a busy contest never prints a card for every contact unasked. */
-    public static QslToggle contestQslToggle() {
-        return new QslToggle(com.ars.fx.data.QslLabel.KEY_PRINT_ON_CONTEST_SAVE, "Print a label for each new contest QSO (beta)",
-                "Print a QSL label for every new, non-dupe contest QSO as it is logged (edits and dupes never print) — choose the printer in Setup ▸ Label printers");
-    }
-
     /** A button that is not wired up yet: shown greyed out, does nothing when clicked, and says so in its tooltip. */
     public static Label placeholderButton(String text, String styleClass, String tooltip) {
         Label b = lbl(text, styleClass);
@@ -340,9 +327,9 @@ public final class Shell {
         row.getStyleClass().add(hue);
         if (id.equals(active)) row.getStyleClass().add("active");
         VBox.setMargin(row, new Insets(2, 9, 2, 9));
-        // dock = navigation; J-Log returns to whichever mode (normal/contest) the operator left it in
+        // dock = navigation
         Tips.tip(row, hue.equals("setup") ? "Setup - station, radio, data, log and the suite" : name + (isBeta(id) ? " (beta)" : "") + (running ? "" : " (not running)"));
-        row.setOnMouseClicked(e -> navigate(id.equals("log") ? "logc" : id.equals("hub") ? ("logc".equals(currentSurface) ? "hub" : home()) : id)   /* J-Log = the contest page; normal logging is on the J-Hub dashboard */);
+        row.setOnMouseClicked(e -> navigate(id.equals("hub") ? home() : id));
         return row;
     }
 

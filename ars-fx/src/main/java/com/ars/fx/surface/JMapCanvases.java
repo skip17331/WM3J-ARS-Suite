@@ -584,28 +584,8 @@ final class JMapCanvases {
         "ON", java.util.List.of("ONN", "ONE", "GH", "ONS"), "GTA", java.util.List.of("GH"), "HI", java.util.List.of("PAC"),
         "NT", java.util.List.of("TER"), "NU", java.util.List.of("TER"), "YT", java.util.List.of("TER"),
         "FL", java.util.List.of("NFL", "SFL", "WCF"));
-    static java.util.Set<String> workedSections = java.util.Set.of();
-    static long workedSectionsAt = 0, soloScoreAt = 0;
-    /** Sections worked in the open contest, aliases resolved; re-read at most every 2 seconds because the repaint is frequent. */
-    static java.util.Set<String> workedSections() {
-        long now = System.currentTimeMillis();
-        if (now - workedSectionsAt > 2000) {
-            // J-Map in its own window is a separate process: nothing there ever opened the contest, so the worked set was always empty.
-            // Load the active contest, and re-score every few seconds because the contest page's change counter is in the other process.
-            if (com.ars.fx.data.ContestState.plugin() == null) com.ars.fx.data.ContestState.ensureLoaded();
-            if (com.ars.fx.shell.Shell.solo && com.ars.fx.data.ContestState.plugin() != null && now - soloScoreAt > 5000) {
-                soloScoreAt = now; com.ars.fx.data.ContestState.recompute();
-            }
-            java.util.Set<String> w = new java.util.HashSet<>();
-            for (String m : com.ars.fx.data.ContestState.workedMults()) {
-                String u = m.trim().toUpperCase();
-                w.add(u);
-                w.addAll(SECTION_ALIASES.getOrDefault(u, java.util.List.of()));
-            }
-            workedSections = w; workedSectionsAt = now;
-        }
-        return workedSections;
-    }
+    /** Sections worked: none, now that contest scoring is gone from this app, so no region is shaded as worked. */
+    static java.util.Set<String> workedSections() { return java.util.Set.of(); }
     /** A region layer (Sweepstakes sections, states and provinces): each region filled in its colour with an outline. Worked sections are hunter green. */
     static void drawRegions(GraphicsContext g, java.util.List<com.ars.fx.data.RegionLayers.Region> layer, double rmx, double rmy, double rw, double rh, double pxPerDeg) {
         g.setFillRule(javafx.scene.shape.FillRule.EVEN_ODD);

@@ -13,11 +13,7 @@ module com.jlog.engine {
     requires ch.qos.logback.core;
     requires org.apache.pdfbox;
 
-    opens com.jlog.plugin to com.fasterxml.jackson.databind;
-
     exports com.jlog.db;
-    exports com.jlog.plugin;
     exports com.jlog.scoring;
-    exports com.jlog.export;
     exports com.jlog.util;
 }

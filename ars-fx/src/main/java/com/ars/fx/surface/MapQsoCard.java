@@ -201,7 +201,6 @@ final class MapQsoCard {
         com.ars.fx.shell.IdTimer.reset(); com.ars.fx.data.QsoRecorder.logged(c, JLogDb.bandFor(f), mode.getText());
         com.ars.fx.data.AutoUpload.afterLog();
         JLogDb.QsoFull saved = JLogDb.byId(JLogDb.maxId());
-        if (saved != null) com.ars.fx.data.N1mmBroadcast.normalAdded(com.ars.fx.data.N1mmBroadcast.of(saved));
         SpotAction.takePending();                    // this contact is done; J-Log must not refill it on its next open
         clear();
         status.setText("Logged " + c.trim().toUpperCase());

@@ -33,8 +33,6 @@ The source installer adds these shortcuts, all of which start the same jar:
 |------|------|---------|
 | TCP 8090 | The hub: loose windows on this machine, and a second-machine display ([see below](#second-machine-display)). Other computers reach it only once you switch on *Share with solo modules on the LAN* (Setup ▸ Remote sharing) | on, this computer only |
 | TCP 8095 | Phone web client: log QSOs, watch spots and the rig from a phone on your network | off |
-| TCP 12070, UDP 12071 | Contest network (multi-operator) and finding the host on the LAN | off |
-| UDP 12060 / 13064 | N1MM+-compatible broadcast out / set-frequency requests in | off |
 | UDP 2237 | Listens for WSJT-X (J-Bridge); any network interface, so WSJT-X on another computer can send to it | on |
 
 Rig, rotor and amplifier control talk to Hamlib's daemons on this computer (4532–4534) and are not reachable from the
@@ -97,8 +95,7 @@ Check with `java --version` — it must say 21 or higher.
    java -cp   ars-fx-<version>-linux-x86_64.jar com.ars.fx.HubServer   # background hub only
    ```
 
-   On Windows you can usually double-click the jar. Module ids for `--module` are `log` (J-Log), `logc` (the contest
-   page), `map`, `sat`, `digi`, `bridge`, `vault`, `learn`, `morse` (the Morse Trainer) and `workshop` (the Antenna
+   On Windows you can usually double-click the jar. Module ids for `--module` are `log` (J-Log), `map`, `sat`, `digi`, `bridge`, `vault`, `learn`, `morse` (the Morse Trainer) and `workshop` (the Antenna
    Workshop); the last two open inside J-Learn.
 
 A jar run this way gives you the full app but no menu shortcuts. For shortcuts, use Option B. Keep the jar in a folder
@@ -315,13 +312,11 @@ alone; to bring it up to date, use **Setup ▸ J-Learn content ▸ Update files*
 | `~/.j-hub/config.json` | All suite settings: station, rig, cluster, transmit, display |
 | `~/.j-hub/updates/` | The update check's log and downloaded updates |
 | `~/.j-log/j-log.db` | The normal log |
-| `~/.j-log/contest-logs/` | Contest logs, one database per contest and year (e.g. `NovSwpSSB2026.db`) |
-| `~/.j-log/archive/<Contest>_<Year>/` | Contest databases you have archived |
 | `~/.j-log/backups/` | ADIF / CSV backups made from Setup ▸ Log database & backup |
 | `~/.j-log/recordings/` | QSO recordings (when Setup ▸ Log database & backup ▸ Record each QSO is on) |
 | `~/.j-hub/propcheck/` | The paths the propagation estimate's self-check has heard |
 | `~/.j-log/upload.json`, `lookup.json`, `macros.json` | Upload and lookup settings (user names; passwords only when there is no keyring) and your macros |
-| The system keyring | Upload and lookup passwords, the Club Log token and the contest network key: Windows Credential Manager, the macOS Keychain, or the Linux Secret Service, under `ars-suite` |
+| The system keyring | Upload and lookup passwords, the Club Log token: Windows Credential Manager, the macOS Keychain, or the Linux Secret Service, under `ars-suite` |
 | `~/.j-vault/inventory.db` | J-Vault inventory |
 | `~/.j-learn/content/` | J-Learn chapters (editable; `content.backup` holds the previous copy after an update) |
 | `~/.j-sat/`, `~/.j-map/` | Orbital data and cached map data |

@@ -40,7 +40,6 @@ public final class SoloConfig {
     /** Loose-capable module ids → display name. Drives validation and window titles. */
     private static final java.util.Map<String, String> NAMES = java.util.Map.ofEntries(
         java.util.Map.entry("log",    "J-Log"),
-        java.util.Map.entry("logc",   "J-Log · Contest"),
         java.util.Map.entry("map",    "J-Map"),
         java.util.Map.entry("sat",    "J-Sat"),
         java.util.Map.entry("digi",   "J-Digi"),

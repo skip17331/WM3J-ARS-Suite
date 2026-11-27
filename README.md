@@ -53,7 +53,7 @@ One app, these modules — each a surface you can dock or float in its own windo
 | Module | What it does |
 |---|---|
 | **J‑Hub** | The control surface: dashboard, DX cluster + RBN with spot alerts, callsign lookups, macros, log uploaders, and **Setup**, the one screen for every setting (Settings in the dock). |
-| **J‑Log** | Dual‑purpose QSO logger: everyday log **and** full contest mode. Over 80 contests (46 state and province QSO parties among them), real‑time validation, multipliers, Cabrillo export. |
+| **J‑Log** | The everyday QSO logger: logbook, awards, uploads (LoTW, eQSL, QRZ, Club Log), QSL labels. Contesting has its own program, [ARS Contest](https://github.com/skip17331/WM3J-Contest-Suite). |
 | **J‑Map** | Real‑time DX map (flat, azimuthal or 3D globe) with grayline, beacons, propagation estimates and great‑circle paths to spotted DX. |
 | **〰 J‑Digi** | Classic keyboard‑to‑keyboard digital modem: RTTY, PSK31, Olivia, MFSK16, DominoEX, CW and AX.25 packet. (FT8 lives in J‑Bridge.) |
 | **⇄ J‑Bridge** | WSJT‑X integration. Forwards QSOs, spots, status, and frequency back into the suite over UDP. |
@@ -111,13 +111,8 @@ you need. Bundled into the app — no separate install, no internet required.
 
 ### Contesting
 
-J‑Log's contest page is built for speed: over 80 contest definitions
-(including 46 state and province QSO parties with their county lists and
-entrant rules), dupe and multiplier checks as you type, Super Check Partial,
-call history that fills the exchange, a band map, F‑key messages and
-Cabrillo export. A **contest network** links several computers on the LAN
-into one multi‑operator log, and an **N1MM+‑compatible UDP broadcast** feeds
-programs that listen for N1MM+.
+Contest logging is no longer part of this suite: it moved to **[ARS Contest](https://github.com/skip17331/WM3J-Contest-Suite)**,
+a contest‑only program that can run on the same PC and attach to this suite's J‑Hub. J‑Log here is the everyday log.
 
 ### DX spotting
 
@@ -302,12 +297,11 @@ compatibility, long‑term openness.
 - **Java‑WebSocket** — the small background hub (port 8090) shares live state
   (spots, rig, rotor, station) with the docked window or each loose module
   window, and with a J‑Map/J‑Sat display on a second machine.
-- **SQLite** — local persistence for QSOs, contests, macros, inventory,
+- **SQLite** — local persistence for QSOs, macros, inventory,
   callsign cache.
 - **Hamlib** (`rigctld` / `rotctld` / `ampctld`) — universal rig / rotor / amp
   backend.
 - **WSJT‑X** integration via **J‑Bridge** UDP listener.
-- **JSON contest modules** — drop‑in plug‑ins for new contests.
 - **Estate handoff** — J‑Vault produces a printable inventory + first‑call
   contacts document for your family.
 
@@ -326,11 +320,10 @@ Runs on:
 - Maintain **cross‑platform compatibility** — same code, same UI,
   Linux / Windows / macOS / Raspberry Pi.
 - Support **universal tools** like Hamlib and WSJT‑X — not vendor‑locked.
-- Deliver **fast, ergonomic, contest‑ready** operator workflows.
+- Deliver **fast, ergonomic** operator workflows.
 - Keep the codebase **modular**, **maintainable**, and **open** for
   community contribution.
-- Offer **a single logging solution** (J‑Log) for both everyday QSOs
-  and high‑speed contest operation.
+- Offer **a single logging solution** (J‑Log) for everyday QSOs.
 - Treat the **station as one system** — not a binder full of incompatible
   tools — through one shared configuration and live state.
 - Ensure the entire suite remains **free and open‑source** under GPLv3.

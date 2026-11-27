@@ -371,48 +371,21 @@ public final class JHubDashboard {
             default: return true;
         }
     }
-    /** Set by the contest page: what to tag a spot with while it is on screen (empty = no tag). */
-    static volatile java.util.function.Function<ClusterClient.Spot, String> contestSpotTag;
-    /** Set by the contest page: is this spot a dupe in the open contest (the contest's own rule: per band, per mode or contest-wide)? */
-    static volatile java.util.function.Predicate<ClusterClient.Spot> contestSpotDupe;
+    /** The tag on a spot: the new-entity / band / mode flag. */
+    static String tag(ClusterClient.Spot s, SpotNeeds.Index ix) { return need(s, ix).label; }
 
-    /** The tag on a spot: in contest mode the contest's own (NEW MULT), otherwise the new-entity / band / mode flag. */
-    static String tag(ClusterClient.Spot s, SpotNeeds.Index ix) {
-        java.util.function.Function<ClusterClient.Spot, String> h = contestSpotTag;
-        if (h != null && "logc".equals(Shell.currentSurface)) return h.apply(s);
-        return need(s, ix).label;
-    }
-
-    /** The spots as band-map marks: needed (tagged), already worked (this call on this band; in a contest, in this contest's log), or ordinary. */
+    /** The spots as band-map marks: needed (tagged), already worked (this call on this band), or ordinary. */
     static java.util.List<com.ars.fx.data.BandMapModel.Mark> bandMarks(java.util.List<ClusterClient.Spot> spots, SpotNeeds.Index ix) {
-        var plugin = com.ars.fx.data.ContestState.plugin();
-        boolean contest = "logc".equals(Shell.currentSurface) && plugin != null;
-        boolean wide = contest && plugin.isContestWideDupe();
-        java.util.Set<String> done = contest ? contestWorked() : java.util.Set.of();
         java.util.List<com.ars.fx.data.BandMapModel.Mark> out = new java.util.ArrayList<>(spots.size());
         for (ClusterClient.Spot s : spots) {
             com.ars.fx.data.BandMapModel.Kind k;
             if (!tag(s, ix).isEmpty()) k = com.ars.fx.data.BandMapModel.Kind.NEEDED;
-            else if (contest ? done.contains(wide ? SpotNeeds.up(s.call()) : SpotNeeds.up(s.call()) + "|" + SpotNeeds.up(s.band())) : ix.worked(s.call(), s.band()))
-                k = com.ars.fx.data.BandMapModel.Kind.WORKED;
+            else if (ix.worked(s.call(), s.band())) k = com.ars.fx.data.BandMapModel.Kind.WORKED;
             else k = com.ars.fx.data.BandMapModel.Kind.NORMAL;
             boolean skimmer = s.de() != null && s.de().toUpperCase(java.util.Locale.ROOT).endsWith("-SKM");     // the local CW skimmer's spots
             out.add(new com.ars.fx.data.BandMapModel.Mark(s.call(), s.freqHz(), s.mode(), s.band(), s.arrivalMs(), k, skimmer));
         }
         return out;
-    }
-    static java.util.Set<String> cwSet = java.util.Set.of();
-    static int cwCount = -1; private static String cwContest = "";
-    /** The calls (and call + band) in the open contest's log, rebuilt only when the log has changed size. */
-    static java.util.Set<String> contestWorked() {
-        java.util.List<com.jlog.model.QsoRecord> q = com.ars.fx.data.ContestState.qsos();
-        String id = com.ars.fx.data.ContestState.plugin().getContestId();
-        if (q.size() != cwCount || !id.equals(cwContest)) {
-            java.util.Set<String> s = new java.util.HashSet<>();
-            for (com.jlog.model.QsoRecord r : q) { String c = SpotNeeds.up(r.getCallsign()); s.add(c); s.add(c + "|" + SpotNeeds.up(r.getBand())); }
-            cwSet = s; cwCount = q.size(); cwContest = id;
-        }
-        return cwSet;
     }
 
     /** Setup: the Club Log token (kept with the upload logins), Update now, and what the list holds. */
@@ -447,7 +420,7 @@ public final class JHubDashboard {
         return h;
     }
 
-    /** The tag a spot shows in the spot list ("NEW ONE", "NEW BAND", a contest's NEW MULT ..., or "" when not needed), for spot alerts. */
+    /** The tag a spot shows in the spot list ("NEW ONE", "NEW BAND", or "" when not needed), for spot alerts. */
     static String needLabel(ClusterClient.Spot s) { return tag(s, needIndex()); }
 
     static SpotNeeds.Need need(ClusterClient.Spot s, SpotNeeds.Index ix) {
@@ -459,63 +432,13 @@ public final class JHubDashboard {
     /** Middle column: the DX spot list with a functional cluster-controls drawer beneath it. */
     /** The DX Cluster window (spot list + cluster controls). Also used on J-Log, so the two always look and behave alike. */
     static Region clusterCol() { return clusterCol(false); }
-    /** The cluster card for contest mode: the same band chips and mode picks as J-Map's controls, so single bands and modes can be shut off. */
-    static Region contestClusterCol() { return clusterCol(false, true); }
-    /** The contest cluster's controls drawer, set by {@link #contestClusterCol()}: the contest page shows it in the right rail, not under the spot list. */
-    static Region contestControlsDrawer;
-
-    // ---- contest-mode spot filters (same picks as J-Map's controls column; kept apart from J-Map's own, under contest.* keys) ----
-    static final java.util.Set<String> contestBands = new java.util.HashSet<>();   // empty = all bands; "20m" form, like a spot's band
-    static int contestMode = Math.max(0, Math.min(3, com.ars.fx.data.HubConfig.getInt("contest.spotMode", 0)));   // 0 All · 1 CW · 2 Phone · 3 Digi
-    static { for (String b : com.ars.fx.data.HubConfig.get("contest.spotBands", "").split(",")) if (!b.isBlank()) contestBands.add(b.trim()); }
-    static boolean contestPass(ClusterClient.Spot s) {
-        return (contestBands.isEmpty() || contestBands.contains(s.band())) && JMapView.modePass(contestMode, s.mode());
-    }
-    static String contestSummary() {
-        String m = new String[]{"All modes", "CW", "Phone", "Digi"}[contestMode];
-        return (contestBands.isEmpty() ? "All bands" : String.join(" ", contestBands.stream().sorted(java.util.Comparator.comparingInt((String b) -> -parseBand(b))).toList())) + " \u00b7 " + m;
-    }
-    private static int parseBand(String b) { try { return Integer.parseInt(b.replaceAll("\\D", "")); } catch (Exception e) { return 0; } }
-    /** Band chips (click to show only the picked bands; none picked = all) and the mode picks, as in J-Map; {@code onChange} re-draws the spot list. */
-    static Region contestFilters(Runnable onChange) {
-        GridPane bands = new GridPane(); bands.setHgap(6); bands.setVgap(6);
-        java.util.List<HBox> chips = new java.util.ArrayList<>(); java.util.List<String> keys = new java.util.ArrayList<>();
-        Runnable restyle = () -> {
-            boolean any = !contestBands.isEmpty();
-            for (int i = 0; i < chips.size(); i++) chips.get(i).setOpacity(!any || contestBands.contains(keys.get(i)) ? 1.0 : 0.4);
-        };
-        for (int i = 0; i < JMapCanvases.MAP_BANDS.length; i++) {
-            String[] b = JMapCanvases.MAP_BANDS[i];
-            String key = b[0] + "m";
-            Region dot = new Region(); dot.getStyleClass().add("jm-band-dot"); dot.setStyle("-fx-background-color:" + b[1] + ";");
-            HBox chip = new HBox(7, dot, lbl(b[0], "jm-band-n")); chip.getStyleClass().add("jm-band"); chip.setAlignment(Pos.CENTER_LEFT);
-            GridPane.setHgrow(chip, Priority.ALWAYS); chip.setMaxWidth(Double.MAX_VALUE); chip.setStyle("-fx-cursor:hand;");
-            chip.setOnMouseClicked(e -> {
-                if (!contestBands.remove(key)) contestBands.add(key);
-                com.ars.fx.data.HubConfig.set("contest.spotBands", String.join(",", contestBands));
-                restyle.run(); onChange.run();
-            });
-            chips.add(chip); keys.add(key);
-            bands.add(chip, i % 3, i / 3);
-        }
-        for (int c = 0; c < 3; c++) { ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(100 / 3.0); bands.getColumnConstraints().add(cc); }
-        restyle.run();
-        Label all = lbl("ALL", "jm-sec-all"); all.setStyle("-fx-cursor:hand;");
-        com.ars.fx.shell.Tips.tip(all, "Show every band again");
-        all.setOnMouseClicked(e -> { contestBands.clear(); com.ars.fx.data.HubConfig.set("contest.spotBands", ""); restyle.run(); onChange.run(); });
-        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        HBox head = new HBox(lbl("BANDS", "jm-sec"), sp, all); head.setAlignment(Pos.CENTER_LEFT);
-        Region modes = segSel(new String[]{"All", "CW", "Phone", "Digi"}, contestMode, i -> { contestMode = i; com.ars.fx.data.HubConfig.setInt("contest.spotMode", i); onChange.run(); });
-        return new VBox(8, head, bands, lbl("MODE", "jm-sec"), modes);
-    }
     /** The compact cluster card's preferred height in the PANELS column (it gets less when the panels under it need the room, see RailSplit). */
     static final double RAIL_CLUSTER_H = 460;
     /**
      * @param compact true for the 322 px PANELS column: a spot is one line (frequency, call, any NEW tag, mode) with the spotter, comment, band
      *                and age in its tooltip, the card takes the height the panels under it leave, and the controls drawer stacks its band / mode pickers
      */
-    static Region clusterCol(boolean compact) { return clusterCol(compact, false); }
-    static Region clusterCol(boolean compact, boolean contest) {
+    static Region clusterCol(boolean compact) {
         ClusterClient cc = ClusterClient.getInstance();
 
         // ---- DX spot panel ----
@@ -589,20 +512,18 @@ public final class JHubDashboard {
             }
             java.util.List<ClusterClient.Spot> shown = new java.util.ArrayList<>();
             for (ClusterClient.Spot s : all)
-                if ((contest ? contestPass(s) : bandOk(s) && modeOk(s)) && (!cluNeededOnly || !tag(s, worked).isEmpty())) shown.add(s);
+                if ((bandOk(s) && modeOk(s)) && (!cluNeededOnly || !tag(s, worked).isEmpty())) shown.add(s);
             rows.getChildren().clear();
             if (shown.isEmpty()) {
                 empty.setText(conn && !all.isEmpty() ? "No spots match the current filter" : com.ars.fx.shell.FeedUi.emptyList(cc, "cluster"));
                 rows.getChildren().add(empty);
             } else {
                 for (ClusterClient.Spot s : shown) {
-                    boolean dupe = contest && contestSpotDupe != null && contestSpotDupe.test(s);      // already worked in this contest: say so on the row
-                    String[] f = { ClusterClient.fmtFreq(s.freqHz()), s.call(), dupe ? "DUPE" : tag(s, worked), s.mode(), s.band(),
+                    String[] f = { ClusterClient.fmtFreq(s.freqHz()), s.call(), tag(s, worked), s.mode(), s.band(),
                             s.de(), s.comment(), ClusterClient.age(s.arrivalMs()) };
                     Region row = compact ? cluRowCompact(f) : cluRow(f,
                             com.ars.fx.data.PathNow.shown() ? com.ars.fx.shell.PathChip.of(com.ars.fx.data.PathNow.forSpot(s.call(), s.freqHz())) : null);
                     row.setStyle("-fx-cursor:hand;");
-                    if (dupe) row.getStyleClass().add("dupe");
                     int mw = com.ars.fx.data.MostWanted.rank(s.call());
                     String hint = (mw > 0 ? "Club Log Most Wanted #" + mw + "\n" : "")
                             + "Click to use this spot — fills the log entry, tunes the rig, and offers to turn the beam";
@@ -612,7 +533,7 @@ public final class JHubDashboard {
                     rows.getChildren().add(row);
                 }
             }
-            fltSummary.setText((contest ? contestSummary() : filterSummary()) + "  ·  " + shown.size() + (cluNeededOnly ? " needed" : " shown"));
+            fltSummary.setText(filterSummary() + "  ·  " + shown.size() + (cluNeededOnly ? " needed" : " shown"));
             if (mapOn[0]) map.update(bandMarks(shown, worked));
             boolean want = cc.wantConnected();
             statusLbl.getStyleClass().remove("live");
@@ -621,16 +542,13 @@ public final class JHubDashboard {
             act.setText(com.ars.fx.shell.FeedUi.action(cc));
         });
 
-        Region[] contestF = { null };      // contest mode: J-Map's band chips and mode picks instead of the coarse All / HF / VHF+
-        if (contest) contestF[0] = contestFilters(() -> render.run());
         VBox bandsF = labeled("BANDS", segSel(CLU_BANDS, cluSel("data.clusterBand", CLU_BANDS), i -> { com.ars.fx.data.HubConfig.set("data.clusterBand", CLU_BANDS[i]); render.run(); }));
         VBox modesF = labeled("MODES", segSel(CLU_MODES, cluSel("data.clusterMode", CLU_MODES), i -> { com.ars.fx.data.HubConfig.set("data.clusterMode", CLU_MODES[i]); render.run(); }));
         Region row2;
-        if (contest) row2 = contestF[0];
-        else if (compact) row2 = new VBox(10, bandsF, modesF);      // side by side they are wider than the PANELS column
+        if (compact) row2 = new VBox(10, bandsF, modesF);      // side by side they are wider than the PANELS column
         else { HBox h = new HBox(12, bandsF, modesF); h.setAlignment(Pos.BOTTOM_LEFT); row2 = h; }
 
-        Label nkl = lbl("Needed only (new entity / band / mode; new multiplier in a contest)"); nkl.getStyleClass().add("k"); HBox.setHgrow(nkl, Priority.ALWAYS); nkl.setMaxWidth(Double.MAX_VALUE);
+        Label nkl = lbl("Needed only (new entity / band / mode)"); nkl.getStyleClass().add("k"); HBox.setHgrow(nkl, Priority.ALWAYS); nkl.setMaxWidth(Double.MAX_VALUE);
         if (compact) nkl.setWrapText(true);
         HBox needed = new HBox(nkl, switchToggle(cluNeededOnly, v -> { cluNeededOnly = v; render.run(); }));
         needed.getStyleClass().add("sx-kv"); needed.setAlignment(Pos.CENTER_LEFT);
@@ -656,13 +574,11 @@ public final class JHubDashboard {
             card.getChildren().setAll(head, fltBox, mapOn[0] ? map : rsp);
             render.run();
         });
-        if (contest) com.ars.fx.data.ContestState.addListener(() -> javafx.application.Platform.runLater(render));   // a QSO logged or erased changes which spots are dupes
         cc.setListener(c -> render.run());
         cc.start();
         render.run();
 
-        VBox col = contest ? new VBox(11, card) : new VBox(11, card, controls);
-        if (contest) contestControlsDrawer = controls;                 // the contest page puts it in its right-hand rail
+        VBox col = new VBox(11, card, controls);
         HBox.setHgrow(col, Priority.ALWAYS); col.setMinWidth(compact ? 0 : 360);
         return col;
     }

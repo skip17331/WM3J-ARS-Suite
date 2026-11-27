@@ -2,24 +2,17 @@ package com.ars.fx.data;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.jlog.model.QsoRecord;
-import com.jlog.plugin.ContestPlugin;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class CallHistoryTest {
     @TempDir Path dir;
-    static ContestPlugin ss, qp;
-
-    @BeforeAll static void plugins() throws Exception { ss = MultCheckTest.load("arrl_sweepstakes_ssb.json"); qp = MultCheckTest.load("fl_qso_party.json"); }
     @BeforeEach void setUp() { CallHistory.setDirForTest(dir); }
     @AfterEach void tearDown() { CallHistory.setDirForTest(null); }
 
@@ -46,39 +39,7 @@ class CallHistoryTest {
         assertNull(CallHistory.clean("prec", "Z"));
     }
 
-    @Test void contestFieldsMapToKeys() {
-        assertEquals("section", CallHistory.keyForField("section"));
-        assertEquals("state", CallHistory.keyForField("state_prov_rcvd"));
-        assertEquals("cqz", CallHistory.keyForField("cq_zone"));
-        assertNull(CallHistory.keyForField("rst_rcvd"));
-        assertNull(CallHistory.keyForField("power_rcvd"));
-    }
-
-    @Test void aLoggedSweepstakesQsoIsRememberedByCall() {
-        QsoRecord r = MultCheckTest.q(ss, "K1ABC/P", "20m", "SSB", "section", "CT");
-        r.setContestField1(null);
-        CallHistory.learn(ss, r);
-        Map<String, String> h = CallHistory.get("K1ABC");
-        assertEquals("CT", h.get("section"));
-        assertEquals(1, CallHistory.count());
-        assertTrue(CallHistory.get("N0BODY").isEmpty());
-    }
-
-    @Test void historyLetsAnExchangeMultiplierBeJudgedBeforeTheExchangeIsHeard() {
-        QsoRecord seen = MultCheckTest.q(ss, "K2XYZ", "20m", "SSB", "section", "ENY");
-        CallHistory.learn(ss, seen);
-        List<QsoRecord> log = new ArrayList<>(List.of(MultCheckTest.q(ss, "K1ABC", "20m", "SSB", "section", "CT")));
-        QsoRecord spot = MultCheck.candidateOf(ss, "K2XYZ", "20m", "SSB");
-        assertFalse(MultCheck.isNewMult(ss, log, spot, MultCheckTest.CTX), "without the exchange nothing is known");
-        String slot = ss.fieldSlotColumn("section");
-        assertNotNull(slot);
-        String sec = CallHistory.get("K2XYZ").get("section");
-        assertEquals("ENY", sec);
-        QsoRecord withHistory = MultCheckTest.q(ss, "K2XYZ", "20m", "SSB", "section", sec);
-        assertTrue(MultCheck.isNewMult(ss, log, withHistory, MultCheckTest.CTX));
-    }
-
-    @Test void importReadsAnN1mmStyleFileAndALoggedValueBeatsAnImportedOne() throws Exception {
+    @Test void importReadsACallHistoryFileAndALoggedValueBeatsAnImportedOne() throws Exception {
         Path f = dir.resolve("hist.txt");
         Files.writeString(f, "# a comment\n!!Order!!,Call,Name,Sect,State,CQZone,ITUZone,Grid,Other\n"
                 + "1,K1ABC,BOB,CT,CT,5,8,FN31,x\n2,K2XYZ,AL,ENY,NY,5,8,FN12,y\n3,,NOCALL,,,,,,\n4,W9OLD,JOE,WI,WI,4,7,EN53,z\n");
@@ -88,10 +49,10 @@ class CallHistoryTest {
         assertEquals("BOB", CallHistory.get("K1ABC").get("name"));
         assertEquals("CT", CallHistory.get("K1ABC").get("section"));
         assertEquals("8", CallHistory.get("K1ABC").get("ituz"));
-        CallHistory.learn(ss, MultCheckTest.q(ss, "K1ABC", "20m", "SSB", "section", "NNJ"));      // the operator logged him from a new section
-        assertEquals("NNJ", CallHistory.get("K1ABC").get("section"));
+        CallHistory.learnFromAdif(List.of(Map.of("CALL", "K1ABC", "STATE", "NJ")));                // the operator logged him from a new state
+        assertEquals("NJ", CallHistory.get("K1ABC").get("state"));
         CallHistory.importFile(f);                                                                 // importing again must not undo it
-        assertEquals("NNJ", CallHistory.get("K1ABC").get("section"));
+        assertEquals("NJ", CallHistory.get("K1ABC").get("state"));
     }
 
     @Test void aFileWithoutACallColumnIsRefused() throws Exception {
@@ -100,21 +61,6 @@ class CallHistoryTest {
         assertFalse(CallHistory.importFile(f).ok());
         assertFalse(CallHistory.importFile(dir.resolve("missing.csv")).ok());
         assertEquals(0, CallHistory.count());
-    }
-
-    @Test void aCountyInAQsoPartyIsRememberedForThatPartysState() {
-        QsoRecord r = MultCheckTest.q(qp, "K4FL", "20m", "SSB", "state_prov_rcvd", "ALC");     // an in-state Florida station, sending its county
-        CallHistory.learn(qp, r);
-        Map<String, String> h = CallHistory.get("K4FL");
-        assertEquals("ALC", h.get("county:FL"));
-        assertNull(h.get("state"), "a county is not a state");
-        assertEquals(List.of("county:FL", "state"), CallHistory.keysForField(qp, "state_prov_rcvd"));
-        assertEquals(List.of("section"), CallHistory.keysForField(ss, "section"));
-    }
-
-    @Test void aStateInAQsoPartyIsStillAState() {
-        CallHistory.learn(qp, MultCheckTest.q(qp, "W1AW", "20m", "SSB", "state_prov_rcvd", "CT"));
-        assertEquals("CT", CallHistory.get("W1AW").get("state"));
     }
 
     @Test void anAdifImportTeachesNameStateGridAndZones() {
@@ -129,7 +75,7 @@ class CallHistoryTest {
     }
 
     @Test void clearForgetsEverything() {
-        CallHistory.learn(ss, MultCheckTest.q(ss, "K1ABC", "20m", "SSB", "section", "CT"));
+        CallHistory.learnFromAdif(List.of(Map.of("CALL", "K1ABC", "STATE", "CT")));
         assertEquals(1, CallHistory.count());
         CallHistory.clear();
         assertEquals(0, CallHistory.count());

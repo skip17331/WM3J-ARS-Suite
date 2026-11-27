@@ -107,7 +107,6 @@ public final class QslLabel {
     // ---- settings ---------------------------------------------------------------------------------
 
     public static final String KEY_PRINT_ON_SAVE = "label.printOnSave";
-    public static final String KEY_PRINT_ON_CONTEST_SAVE = "label.printOnContestSave";
     public static boolean printOnSave()          { return HubConfig.getBool(KEY_PRINT_ON_SAVE, false); }
     public static void setPrintOnSave(boolean b) { HubConfig.setBool(KEY_PRINT_ON_SAVE, b); }
 
@@ -150,25 +149,6 @@ public final class QslLabel {
     /** A normal-log row (the log browser) as label content, for a reprint. */
     public static Qso fromFull(JLogDb.QsoFull q) {
         return new Qso(q.call(), q.datetimeUtc(), q.freq(), q.band(), q.mode(), q.rstSent(), q.rstRcvd(), q.name(), q.qth());
-    }
-
-    /** A contest QSO as label content. Contest rows keep the other station's name / QTH in the same columns as the normal log. */
-    public static Qso fromContest(com.jlog.model.QsoRecord r) {
-        String when = r.getDateTimeUtc() == null ? ""
-                : r.getDateTimeUtc().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        return new Qso(r.getCallsign(), when, ContestFreq.toMhz(r.getFrequency()), r.getBand(), r.getMode(), r.getRstSent(), r.getRstReceived(),
-                r.getOperatorName(), r.getCountry(), contestLine(r.getContestId(), LogExport.exchange(r)));
-    }
-
-    /**
-     * "CQ WW CW · 5NN 05": the contest and the exchange received. A contest QSO rarely has a name or RST of its own, so its label
-     * used to carry little more than the call and time; the exchange is the one thing every contest QSO has.
-     */
-    static String contestLine(String contestId, String exchange) {
-        String c = contestId == null ? "" : contestId.trim().replace('_', ' ');
-        String x = exchange == null ? "" : exchange.trim();
-        if (x.isEmpty()) return c;
-        return c.isEmpty() ? x : c + " \u00b7 " + x;
     }
 
     /** One printed line: its text, its share of the label height, and whether it is bold. */
