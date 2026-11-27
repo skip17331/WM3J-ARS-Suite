@@ -1,9 +1,11 @@
 # WM3J ARS Suite — Install Guide
 
 How to install the suite on **Linux**, **macOS**, **Windows** and **Raspberry Pi**.
-There are two routes:
+There are three routes:
 
-- **[Download a release](#option-a--download-a-release-no-build)** — grab one jar and run it. Needs only Java 21.
+- **[Download the installer](#option-a2--download-the-installer-no-build-with-shortcuts)** — one small jar that fetches the
+  app, checks it and adds the menu shortcuts. Needs only Java 21.
+- **[Download a release](#option-a--download-a-release-no-build)** — grab the app jar and run it. Needs only Java 21; no shortcuts.
 - **[Build from source](#option-b--build-from-source)** — one command (`install.sh` / `install.bat`) that also adds
   menu shortcuts. Needs Java 21, Maven and Git; the first build takes 10–20 minutes.
 
@@ -98,8 +100,35 @@ Check with `java --version` — it must say 21 or higher.
    On Windows you can usually double-click the jar. Module ids for `--module` are `log` (J-Log), `map`, `sat`, `digi`, `bridge`, `vault`, `learn`, `morse` (the Morse Trainer) and `workshop` (the Antenna
    Workshop); the last two open inside J-Learn.
 
-A jar run this way gives you the full app but no menu shortcuts. For shortcuts, use Option B. Keep the jar in a folder
+A jar run this way gives you the full app but no menu shortcuts. For shortcuts, use Option A2 or B. Keep the jar in a folder
 you can write to: the app updates itself there (see [Updating](#updating)).
+
+---
+
+## Option A2 — download the installer (no build, with shortcuts)
+
+1. Download `j-installer-<version>.jar` from the newest release on the [Releases page](https://github.com/skip17331/WM3J-ARS-Suite/releases).
+2. Run it from a terminal: `java -jar j-installer-<version>.jar`
+
+It downloads the release jar for your computer (Linux x86-64 or aarch64, Windows, macOS Intel or Apple Silicon), checks it
+against the SHA-256 checksum GitHub publishes for it (a file that does not match is not installed), and writes the same
+menu shortcuts as Option B. No Maven, no Git, no build.
+
+| Platform | The app is installed in |
+|---|---|
+| Linux | `~/.local/share/ars-suite-app/` |
+| macOS | `~/Library/Application Support/ARS-Suite/` |
+| Windows | `%LOCALAPPDATA%\ARS-Suite\app\` |
+
+- **Upgrading:** run the installer again. It looks for a newer release; the same version is not downloaded twice. On Windows
+  and Linux the app can also update itself (see [Updating](#updating)); on macOS run the installer again.
+- **Your data:** the installer never touches your settings, logs or databases (`~/.j-hub`, `~/.j-log`, `~/.j-vault` ...).
+- **Options:** `--dir <folder>` installs somewhere else; `--download` forces this route when you run the installer from
+  inside a source checkout (otherwise a checkout is built from, see Option B); `--releases-url <url>` reads the release
+  list from a mirror.
+- **If it says "needs Java 21":** install Java 21 or newer and run it again.
+- If you install this way after building from source (or the other way round), the shortcuts point at whichever you
+  installed last.
 
 ---
 
@@ -298,6 +327,8 @@ cd $HOME\ARS_Suite ; git pull ; .\install.bat       # Windows
 ```
 
 **By hand — release jar.** Download the newer jar and run that instead.
+
+**By hand — installer.** Run `java -jar j-installer-<version>.jar` again (Option A2).
 
 Updating never touches your settings, logs or databases. The reference library in `~/.j-learn/content/` is also left
 alone; to bring it up to date, use **Setup ▸ J-Learn content ▸ Update files**.

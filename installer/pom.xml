@@ -64,6 +64,20 @@
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
+            <!-- the launchers and icons the no-build install writes, taken from the app's own sources so there is one copy of each -->
+            <resource>
+                <directory>../ars-fx</directory>
+                <includes><include>ars-fx.sh</include><include>ars-fx.bat</include></includes>
+                <targetPath>standalone</targetPath>
+            </resource>
+            <resource>
+                <directory>../ars-fx/src/main/resources/com/ars/fx/icons</directory>
+                <includes>
+                    <include>suite.png</include><include>log.png</include><include>map.png</include><include>sat.png</include>
+                    <include>digi.png</include><include>vault.png</include><include>learn.png</include>
+                </includes>
+                <targetPath>standalone/icons</targetPath>
+            </resource>
         </resources>
     </build>
 </project>
