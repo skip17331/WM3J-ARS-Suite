@@ -13,23 +13,19 @@ import java.util.function.Supplier;
 import static com.ars.fx.shell.Shell.lbl;
 
 /**
- * Shared F1–F8 station-macro button row, used by J-Log normal, J-Log contest,
+ * Shared F1–F8 station-macro button row, used by J-Log,
  * and the J-Hub dashboard mini-log. Macros are defined in J-Hub ▸ Data.
  */
 public final class MacroBar {
     private MacroBar() {}
 
     /** The F1–F<n> button row; {@code fire.accept(index)} runs that macro. */
-    public static javafx.scene.layout.FlowPane row(IntConsumer fire) { return row(fire, null); }
-
-    /** The same row for a contest's own set of messages ({@code set}; null or empty = the global F-keys). */
-    public static javafx.scene.layout.FlowPane row(IntConsumer fire, java.util.List<MacroConfig.Macro> set) {
+    public static javafx.scene.layout.FlowPane row(IntConsumer fire) {
         // wraps onto a second line in a narrow column — the buttons keep their natural size instead of collapsing to "…"
         javafx.scene.layout.FlowPane m = new javafx.scene.layout.FlowPane(6, 6); m.setAlignment(Pos.CENTER_LEFT);
-        boolean own = set != null && !set.isEmpty();
-        for (int i = 0; i < (own ? set.size() : MacroConfig.count()); i++) {
+        for (int i = 0; i < MacroConfig.count(); i++) {
             final int idx = i;
-            MacroConfig.Macro shown = own ? set.get(i) : MacroConfig.get(i);
+            MacroConfig.Macro shown = MacroConfig.get(i);
             VBox mb = new VBox(2, lbl("F" + (i + 1), "jl-macro-fk"), lbl(shown.label(), "jl-macro-ml"));
             mb.getStyleClass().add("jl-macro"); mb.setStyle("-fx-cursor:hand;");
             mb.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
@@ -93,16 +89,8 @@ public final class MacroBar {
 
     /** Standard fire: voice file or text per {@link #usePhone}; text is {CALL}-expanded. */
     public static IntConsumer fire(Supplier<String> modeSup, Supplier<String> callSup, Consumer<String> sendText) {
-        return fire(modeSup, callSup, sendText, null, null);
-    }
-
-    /** As above for a contest page: {@code set} is the contest's own messages (null = the global ones; the voice file always comes
-     *  from the global F-key), {@code extras} supplies {EXCH} and {NR} at the moment of sending. */
-    public static IntConsumer fire(Supplier<String> modeSup, Supplier<String> callSup, Consumer<String> sendText,
-                                   java.util.List<MacroConfig.Macro> set, Supplier<java.util.Map<String, String>> extras) {
         return i -> {
-            MacroConfig.Macro g = MacroConfig.get(i);
-            MacroConfig.Macro m = set != null && i < set.size() ? new MacroConfig.Macro(set.get(i).label(), set.get(i).text(), g.audio()) : g;
+            MacroConfig.Macro m = MacroConfig.get(i);
             if (usePhone(modeSup.get())) {
                 if (m.audio() != null && !m.audio().isBlank()) {
                     com.ars.fx.data.TxController.macroVoice(m.audio(), sendText);      // keys the rig, plays the file, unkeys
@@ -110,7 +98,7 @@ public final class MacroBar {
                     sendText.accept("▶ voice " + m.label() + " — no audio set (J-Hub ▸ Data ▸ Macros)");
                 }
             } else {
-                String text = textFor(m.text(), callSup.get(), sendText, extras == null ? java.util.Map.of() : extras.get());   // null = a needed station field is empty (already reported)
+                String text = textFor(m.text(), callSup.get(), sendText);   // null = a needed station field is empty (already reported)
                 if (text != null) com.ars.fx.data.TxController.macroText(modeSup.get(), text, sendText);   // CW via the rig keyer
             }
         };
@@ -126,9 +114,8 @@ public final class MacroBar {
 
     /** The macro text with {CALL} and the station placeholders filled in. When a field it needs is empty, nothing is sent:
      *  this reports which one to {@code report} and returns null. */
-    public static String textFor(String template, String workedCall, Consumer<String> report) { return textFor(template, workedCall, report, java.util.Map.of()); }
-    public static String textFor(String template, String workedCall, Consumer<String> report, java.util.Map<String, String> extras) {
-        MacroConfig.Expanded x = MacroConfig.expand(template, workedCall, extras);
+    public static String textFor(String template, String workedCall, Consumer<String> report) {
+        MacroConfig.Expanded x = MacroConfig.expand(template, workedCall);
         if (x.ok()) return x.text();
         if (report != null) report.accept("✗ not sent — this macro needs " + String.join("; ", x.missing()) + ". Set it in J-Hub.");
         return null;

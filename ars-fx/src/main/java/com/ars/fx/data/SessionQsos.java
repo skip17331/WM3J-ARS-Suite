@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * <p>Each QSO is placed from the grid square it was logged with when there is one, otherwise from its callsign's prefix ({@link MapTracks#resolve}); one
  * that cannot be placed stays in the count but gets no arc. A QSO imported from a file does not count: only contacts logged as they happen
- * (the log forms, the J-Map form, WSJT-X auto-log, the phone client and the contest page).
+ * (the log forms, the J-Map form, WSJT-X auto-log, and the phone client).
  */
 public final class SessionQsos {
     private SessionQsos() {}

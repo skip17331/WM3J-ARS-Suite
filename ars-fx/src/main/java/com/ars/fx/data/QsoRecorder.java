@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 /**
  * QSO audio recording (punch list 5-2). While it is on, the receive audio J-Digi captures (the input chosen in J-Digi, 8 kHz mono)
- * goes into a ring of the last two minutes. When a QSO is logged on the log form, the contest page or the map's QSO card, the last
+ * goes into a ring of the last two minutes. When a QSO is logged on the log form or the map's QSO card, the last
  * {@code rec.seconds} of it is written as a WAV file: {@code ~/.j-log/recordings/<date>/<time>_<call>_<band>_<mode>.wav} (UTC).
  * Off until switched on in Setup ▸ Log database & backup. Turning it on starts J-Digi's audio capture if it is not already running.
  */
