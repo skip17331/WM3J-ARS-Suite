@@ -460,10 +460,14 @@ public final class HubServer {
 
     // ── process / port helpers ────────────────────────────────────────────────
 
-    /** Build a {@code java ... <mainClass> <appArgs>} command re-using this JVM's java binary + classpath. */
-    private static List<String> javaCmd(String mainClass, String... appArgs) {
+    /** Build a {@code java ... <mainClass> <appArgs>} command re-using this JVM's java binary + classpath. The child gets this JVM's
+     *  {@code user.home}, so a hub (or loose module) started by a window that runs on another home, as a dev run on a scratch
+     *  folder does, reads and writes that home and never the real {@code ~/.j-hub}. Normally the two are the same. The main class
+     *  stays the last element before the app arguments: {@link #ensureRunning()} inserts its own JVM flag just in front of it. */
+    static List<String> javaCmd(String mainClass, String... appArgs) {
         List<String> cmd = new ArrayList<>();
         cmd.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
+        cmd.add("-Duser.home=" + System.getProperty("user.home"));
         cmd.add("-cp");
         cmd.add(selfClasspath());
         cmd.add(mainClass);
