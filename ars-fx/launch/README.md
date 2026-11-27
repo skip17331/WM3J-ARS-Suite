@@ -9,7 +9,7 @@ The ARS Suite runs two ways from the **same jar**:
 
 ```bash
 ./run-loose.sh log      # open J-Log in its own window
-./run-loose.sh map      # log | logc | map | sat | digi | vault | learn | bridge | morse | workshop
+./run-loose.sh map      # log | map | sat | digi | vault | learn | bridge | morse | workshop
 ./run-loose.sh hub      # start ONLY the background hub (tray), open nothing
 ```
 

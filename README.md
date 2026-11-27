@@ -19,6 +19,10 @@ inventory, an in‑app reference library, and antenna design — all written in
 Java, all GPLv3, all in **one application** instead of a dozen separate
 programs.
 
+> **New in 2.0 — contesting has its own program.** Contest logging moved out of this suite
+> into **[ARS Contest](https://github.com/skip17331/WM3J-Contest-Suite)**, so that it can be done
+> properly. J‑Log here is now the everyday log. [Why, and what it means for you ↓](#contesting--its-own-program-ars-contest)
+
 ---
 
 **Just want to install it?** → **[INSTALL.md](INSTALL.md)** — download a
@@ -40,6 +44,7 @@ names, and common gotchas.
 **Website and code:** **[wm3j.net](https://www.wm3j.net)** ·
 **[GitHub repositories](https://github.com/skip17331?tab=repositories)** —
 [WM3J-ARS-Suite](https://github.com/skip17331/WM3J-ARS-Suite) (this project),
+[WM3J-Contest-Suite](https://github.com/skip17331/WM3J-Contest-Suite) (ARS Contest: the contest program that grew out of this suite),
 [WM3J-ARS-Plugin-Builder](https://github.com/skip17331/WM3J-ARS-Plugin-Builder) (editor for contest and award plugins),
 [GoKit](https://github.com/skip17331/GoKit) (emergency communications: APRS, Winlink, packet) and
 [wireworks](https://github.com/skip17331/wireworks) (antenna modeling and design).
@@ -109,10 +114,43 @@ have their license. Searchable, with an Advanced toggle for engineering
 depth. Cross‑references jump straight to the calculator or sub‑section
 you need. Bundled into the app — no separate install, no internet required.
 
-### Contesting
+### Contesting — its own program, ARS Contest
 
-Contest logging is no longer part of this suite: it moved to **[ARS Contest](https://github.com/skip17331/WM3J-Contest-Suite)**,
-a contest‑only program that can run on the same PC and attach to this suite's J‑Hub. J‑Log here is the everyday log.
+Up to 1.x, J‑Log also had a contest mode. In **2.0** it moved out of this suite into a program of its own,
+**[ARS Contest](https://github.com/skip17331/WM3J-Contest-Suite)**. That was a deliberate choice, not a removal.
+
+**Why it was moved.** Running a contest is a different job from running a shack, and doing the contest side
+justice takes a program built around it: a screen laid out for the exchange you are copying, a keyboard flow
+fast enough for a pileup, each sponsor's scoring rules and multiplier lists (86 contests), a log kept per
+contest, several stations sharing one log, and a Cabrillo file the sponsor's robot accepts. Kept inside this
+suite, all of that had to share screens, Setup pages, a settings file, a release cycle and a place in the dock
+with J‑Digi, J‑Sat, J‑Vault and J‑Learn, so the contest side could never be given the focus it deserved, and
+every other module carried its weight. As its own program ARS Contest can be built, released and versioned at
+the pace of contests, and this suite stays what it is meant to be: the whole shack, with an everyday log.
+
+**What is where**
+
+| | ARS Suite (this project) | ARS Contest |
+|---|---|---|
+| Everyday logbook, awards, uploads (LoTW, eQSL, QRZ, Club Log), QSL labels | ✔ | |
+| DX cluster / RBN, J‑Map, J‑Sat, J‑Digi, J‑Bridge, J‑Vault, J‑Learn, Morse Trainer | ✔ | |
+| Info page with the contest *calendar* (WA7BNM) | ✔ | the rules of the open contest, and the calendar |
+| Contest page and custom cockpit, 86 contest definitions, validation, dupes, multipliers | | ✔ |
+| Super Check Partial, call history that fills the exchange, CW / voice F‑keys, Morse send / receive bar | | ✔ |
+| Contest network (several stations, one log), N1MM+ broadcast, Cabrillo / ADIF / CSV export | | ✔ |
+
+**Running both.** They install side by side on one PC. ARS Contest keeps its data in `~/.ars-contest`
+(this suite uses `~/.j-hub` and `~/.j-log`), its hub listens on port 8091 (this suite's on 8090), and its
+shortcuts sit in **Amateur Radio ▸ Contest Suite** next to this suite's **Amateur Radio ▸ ARS Suite**. The first
+time ARS Contest runs it copies your station, rig, rotor, amplifier, transmit and cluster settings from this suite
+(it only reads them; lookup logins and the hub port are not copied). ARS Contest can also be pointed at this
+suite's hub (Setup ▸ Remote sharing in ARS Contest) so one rig connection and one cluster feed serve both; that has
+been tried with stand‑ins, not yet in a real session.
+
+**Your old contest logs** were not deleted. `~/.j-log/contest.db` and `~/.j-log/contest-logs/` are left exactly as
+they were, and nothing in this suite reads them any more. To bring one into ARS Contest, close both programs, copy
+the database file (with any `-wal` and `-shm` files beside it) into `~/.ars-contest/contest-logs/` under a new name,
+and start ARS Contest: the log appears under "continue" when you open its contest.
 
 ### DX spotting
 
@@ -137,10 +175,10 @@ Spanish, German, French, Italian and Portuguese.
 
 ### Macros that share state
 
-Every app uses the same macro engine. `{MYCALL}`, `{CALL}`, `{RST_S}`,
-`{RST_R}`, `{NAME}`, `{EXCH}`, `{SERIAL}`, `{NR}`, `{FREQ}`, `{BAND}`,
-`{MODE}` — the values come from the live rig + the QSO entry pane in
-J‑Log/J‑Digi, **not** from per‑app duplicates.
+Every app uses the same macro engine. `{CALL}` is the station you are working; every other tag comes from your
+own settings — `{MYCALL}`, `{NAME}`, `{QTH}`, `{GRID}`, `{POWER}`, `{RIG}`, `{ROTOR}` and about forty more
+(**Setup ▸ Transmit & macros** lists them) — so a message is built from the live station data, **not** from
+per‑app duplicates. A tag whose setting is empty stops the message from being sent and says which one is missing.
 
 ### Log uploaders
 
@@ -334,8 +372,9 @@ Runs on:
 
 ## Contributing
 
-Pull requests, issue reports, contest plug‑ins, antenna calculators, and
-documentation tweaks are all welcome. The codebase is intentionally
+Pull requests, issue reports, antenna calculators, and documentation tweaks are
+all welcome (contest definitions and contest features belong in
+[ARS Contest](https://github.com/skip17331/WM3J-Contest-Suite)). The codebase is intentionally
 modular: pick a module, build it, hack on it independently. See
 [CodeOfConduct.md](CodeOfConduct.md).
 

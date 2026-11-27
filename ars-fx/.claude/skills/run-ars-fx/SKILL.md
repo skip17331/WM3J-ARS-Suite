@@ -69,7 +69,7 @@ Tests: `mvn -o test` (about 620; `DaemonManagerTest.rtsWithoutASerialPortIsLeftA
 
 ## Troubleshooting
 
-- `Could not resolve dependencies ... j-log-engine:jar:1.12.5` -> install the four libraries first (Build).
+- `Could not resolve dependencies ... j-log-engine:jar:<version>` -> install the four libraries first (Build).
 - `app did not come up` from `app.sh start` -> read `/tmp/ars-fx-run.log`; first run after a pull compiles for a while, retry.
 - `error: no answer in 20 s` -> the dev run is not up or was started without the hook (`./run.sh` does not set it); `pgrep -af "[D]surface="`, then `app.sh start`.
 - Menu launchers show old behaviour -> the packaged jar is stale: stop the hub, rebuild (Build), start the hub, reopen the window.
