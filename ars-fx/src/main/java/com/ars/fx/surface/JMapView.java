@@ -158,23 +158,25 @@ public final class JMapView {
     }
 
     // ── overlay toggles (left panel) ──────────────────────────────────────────
-    static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false, ovBurst = true, ovFade = true, ovCountries = true, ovSections = false, ovStates = false;
+    static boolean ovGrayline = true, ovBasemap = true, ovBeam = true, ovRings = true, ovCallsigns = true, ovNeededOnly = false, ovBurst = true, ovFade = true, ovCountries = true, ovStates = false;
     // J-Map carries a 270px controls panel on top of the dock+rail, so a narrow / high-DPI window
     // pushes the side edges off screen. Below this logical width auto-collapse the controls to the
     // icon strip (same idea as J-Sat's satellite list).
     static final double NARROW_W = 1240;
     static boolean narrow() { return mapFrame != null && mapFrame.getWidth() > 1 && mapFrame.getWidth() < NARROW_W; }
     static boolean overlayFlag(int i) {
-        return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; case 5 -> ovNeededOnly; case 6 -> ovBurst; case 7 -> ovFade; case 9 -> ovSections; case 10 -> ovStates; default -> ovCountries; };
+        return switch (i) { case 0 -> ovGrayline; case 1 -> ovBasemap; case 2 -> ovBeam; case 3 -> ovRings; case 4 -> ovCallsigns; case 5 -> ovNeededOnly; case 6 -> ovBurst; case 7 -> ovFade; case 9 -> ovStates; default -> ovCountries; };
     }
     static void applyOverlay(int i, boolean v) {
-        switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; case 5 -> ovNeededOnly = v; case 6 -> ovBurst = v; case 7 -> ovFade = v; case 9 -> ovSections = v; case 10 -> ovStates = v; default -> ovCountries = v; }
+        switch (i) { case 0 -> ovGrayline = v; case 1 -> ovBasemap = v; case 2 -> ovBeam = v; case 3 -> ovRings = v; case 4 -> ovCallsigns = v; case 5 -> ovNeededOnly = v; case 6 -> ovBurst = v; case 7 -> ovFade = v; case 9 -> ovStates = v; default -> ovCountries = v; }
     }
     static void setOverlayFlag(int i, boolean v) {
         applyOverlay(i, v);
-        com.ars.fx.data.HubConfig.setBool("map.ov." + i, v);            // kept for next time
+        com.ars.fx.data.HubConfig.setBool(ovKey(i), v);                 // kept for next time
     }
-    static { for (int i = 0; i < 11; i++) applyOverlay(i, com.ars.fx.data.HubConfig.getBool("map.ov." + i, overlayFlag(i))); }
+    /** The saved setting of overlay {@code i}. States / provinces (now 9) keep the key they had as number 10, before the Sweepstakes layer was removed. */
+    static String ovKey(int i) { return "map.ov." + (i == 9 ? 10 : i); }
+    static { for (int i = 0; i < 10; i++) applyOverlay(i, com.ars.fx.data.HubConfig.getBool(ovKey(i), overlayFlag(i))); }
     static java.util.Set<String> workedCallsCache = java.util.Set.of();
     static long workedCallsAt = 0;
     static java.util.Set<String> workedCalls() {

@@ -5,9 +5,9 @@ import java.io.InputStream;
 import java.util.List;
 
 /**
- * Two region layers for J-Map, drawn like the country colours: the 85 ARRL / RAC Sweepstakes sections, and the states and
- * provinces of the US and Canada. Built by {@code tools/basemap/build_regions.py}; the files are in the format
- * {@link CountryShapes} reads, so {@code code} is the section (WWA, NNJ, GH ...) or the postal code (WA, ON ...).
+ * A region layer for J-Map, drawn like the country colours: the states and provinces of the US and Canada. Built by
+ * {@code tools/basemap/build_regions.py}; the file is in the format {@link CountryShapes} reads, so {@code code} is the
+ * postal code (WA, ON ...).
  * No JavaFX here, so it can be tested.
  */
 public final class RegionLayers {
@@ -18,12 +18,8 @@ public final class RegionLayers {
         public String code() { return shape.code().trim(); }
     }
 
-    private static volatile List<Region> sections, states;
+    private static volatile List<Region> states;
 
-    public static List<Region> sections() {
-        if (sections == null) sections = load("/com/ars/fx/map/ss-sections.bin.gz");
-        return sections;
-    }
     public static List<Region> states() {
         if (states == null) states = load("/com/ars/fx/map/na-states.bin.gz");
         return states;

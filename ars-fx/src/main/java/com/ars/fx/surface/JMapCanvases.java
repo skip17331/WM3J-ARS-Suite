@@ -431,7 +431,6 @@ final class JMapCanvases {
         {"Gray line / sun"},{"Basemap"},{"Beam heading"},{"Range rings"},{"Callsigns"},{"Needed only"},{"Starburst on new spots"},
         {"Fade old callsigns", "A callsign fades from the map after a while - sooner when the map is busy (about 75 seconds with 80 or more spots showing), later when it is quiet (up to 8 minutes with 10 or fewer). The dot stays, and the selected spot always keeps its name."},
         {"Country colours", "Each country in its own shade of the land colour, so borders are easy to see; neighbours never share one. Off: all land in one colour."},
-        {"Sweepstakes sections", "The 85 ARRL and RAC Sweepstakes sections, each in its own colour with its name once you zoom in (flat map); a section you have worked in the open contest turns hunter green. Draws over the state colours if both are on."},
         {"States / provinces", "The states and provinces of the US and Canada, each in its own colour with its postal code once you zoom in (flat map)."},
     };
     static double Q_LAT = 0, Q_LON = 0;  // station QTH (from HubConfig)
@@ -561,14 +560,13 @@ final class JMapCanvases {
             g.fill(); g.stroke();
         }
         if (ovStates) drawRegions(g, com.ars.fx.data.RegionLayers.states(), rmx, rmy, rw, rh, pxPerDeg);
-        if (ovSections) drawRegions(g, com.ars.fx.data.RegionLayers.sections(), rmx, rmy, rw, rh, pxPerDeg);
         g.setStroke(P.border()); g.setLineWidth(0.7);
         for (com.ars.fx.data.VectorBasemap.Ring r : com.ars.fx.data.VectorBasemap.borders().rings()) {
             if (!ringVisible(r)) continue;
             rectPath(g, r.ll(), rmx, rmy, rw, rh, pxPerDeg, false);
             g.stroke();
         }
-        if (!ovStates && !ovSections && vMaxLon - vMinLon <= 100) {                           // state and province lines only once zoomed in
+        if (!ovStates && vMaxLon - vMinLon <= 100) {                           // state and province lines only once zoomed in
             g.setStroke(P.state()); g.setLineWidth(0.6); g.setLineDashes(4, 3);
             for (com.ars.fx.data.VectorBasemap.Ring r : com.ars.fx.data.VectorBasemap.states().rings()) {
                 if (!ringVisible(r)) continue;
@@ -578,21 +576,12 @@ final class JMapCanvases {
             g.setLineDashes(null);
         }
     }
-    static final javafx.scene.paint.Color HUNTER_GREEN = Color.web("#355E3B");
-    /** A plugin that logs the whole of one of these lights every section on the right (ON = all four Ontario sections ...). */
-    static final java.util.Map<String, java.util.List<String>> SECTION_ALIASES = java.util.Map.of(
-        "ON", java.util.List.of("ONN", "ONE", "GH", "ONS"), "GTA", java.util.List.of("GH"), "HI", java.util.List.of("PAC"),
-        "NT", java.util.List.of("TER"), "NU", java.util.List.of("TER"), "YT", java.util.List.of("TER"),
-        "FL", java.util.List.of("NFL", "SFL", "WCF"));
-    /** Sections worked: none, now that contest scoring is gone from this app, so no region is shaded as worked. */
-    static java.util.Set<String> workedSections() { return java.util.Set.of(); }
-    /** A region layer (Sweepstakes sections, states and provinces): each region filled in its colour with an outline. Worked sections are hunter green. */
+    /** A region layer (states and provinces): each region filled in its colour with an outline. */
     static void drawRegions(GraphicsContext g, java.util.List<com.ars.fx.data.RegionLayers.Region> layer, double rmx, double rmy, double rw, double rh, double pxPerDeg) {
         g.setFillRule(javafx.scene.shape.FillRule.EVEN_ODD);
         g.setStroke(P.coast()); g.setLineWidth(0.8);
-        java.util.Set<String> worked = layer == com.ars.fx.data.RegionLayers.sections() ? workedSections() : java.util.Set.of();
         for (com.ars.fx.data.RegionLayers.Region r : layer) {
-            g.setFill(worked.contains(r.code()) ? HUNTER_GREEN : P.country(r.shape().colour()));
+            g.setFill(P.country(r.shape().colour()));
             for (com.ars.fx.data.CountryShapes.Polygon poly : r.shape().polygons()) {
                 if (poly.maxLon() < vMinLon || poly.minLon() > vMaxLon || poly.maxLat() < vMinLat || poly.minLat() > vMaxLat) continue;
                 g.beginPath();
@@ -734,7 +723,7 @@ final class JMapCanvases {
             double[][] regions = {{52,13},{39,-98},{-14,-52},{8,20},{55,40},{36,138},{-25,134}};
             String[] rn = {"EUROPE","N. AMERICA","S. AMERICA","AFRICA","RUSSIA","ASIA","OCEANIA"};
             for (int i = 0; i < rn.length; i++) g.fillText(rn[i], lon2x(regions[i][1], RMX, RW), lat2y(regions[i][0], RMY, RH));
-        } else if (ovSections || ovStates) drawRegionLabels(g, ovSections ? com.ars.fx.data.RegionLayers.sections() : com.ars.fx.data.RegionLayers.states(), RMX, RMY, RW, RH, RW / (vMaxLon - vMinLon));
+        } else if (ovStates) drawRegionLabels(g, com.ars.fx.data.RegionLayers.states(), RMX, RMY, RW, RH, RW / (vMaxLon - vMinLon));
         else if (ovBasemap) drawCountryLabels(g, RMX, RMY, RW, RH);
 
         double spotA = dimSpots() ? 0.28 : 1.0;
