@@ -3,8 +3,9 @@ name: Release
 # Cut a published GitHub Release when a v* tag is pushed (or run manually via
 # the Actions tab for an existing tag). Gates on the tests for the ars-fx app +
 # its embedded libraries, then runs build-release.sh — which builds the five
-# ars-fx jars into dist/ and runs the native-leak guard — then uploads
-# dist/*.jar to the release.
+# ars-fx jars into dist/ and runs the native-leak guard — then builds the installer jar
+# (j-installer-<version>.jar, the one download that installs the suite with no build, see
+# INSTALL.md) and uploads both to the release.
 #
 # Replaces the manual `./build-release.sh` + `gh release create` dance. Tag and
 # push to trigger:
@@ -66,6 +67,20 @@ jobs:
       - name: Build release artifacts (+ native guard)
         run: ./build-release.sh
 
+      # The installer jar carries the version of its pom in its name; it is published under the TAG's version. A pom that
+      # lags the tag is only warned about: it must never stop a release (the in-app updater reads /releases/latest).
+      - name: Build the installer jar
+        shell: bash
+        run: |
+          set -e
+          TAG="${{ steps.tag.outputs.name }}"; VER="${TAG#v}"
+          PV="$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' installer/pom.xml | head -1)"
+          if [ "$PV" != "$VER" ]; then echo "::warning::installer/pom.xml is version $PV but the tag is $TAG; the installer jar is published as j-installer-$VER.jar anyway"; fi
+          mvn -B -q -DskipTests -f installer/pom.xml package
+          mkdir -p installer-dist
+          cp "installer/target/j-installer-$PV.jar" "installer-dist/j-installer-$VER.jar"
+          ls -l installer-dist
+
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -77,8 +92,8 @@ jobs:
           if [ -f "$notes" ]; then NOTES_ARG=(--notes-file "$notes"); else NOTES_ARG=(--generate-notes); fi
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG exists — uploading/clobbering assets."
-            gh release upload "$TAG" dist/*.jar --clobber
+            gh release upload "$TAG" dist/*.jar installer-dist/*.jar --clobber
           else
-            gh release create "$TAG" dist/*.jar \
+            gh release create "$TAG" dist/*.jar installer-dist/*.jar \
               --title "WM3J ARS Suite $TAG" --verify-tag "${NOTES_ARG[@]}"
           fi

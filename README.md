@@ -215,7 +215,9 @@ Install Java 21, download the jar for your system from the
 [Releases page](https://github.com/skip17331/WM3J-ARS-Suite/releases)
 and run it: `java -jar ars-fx-<version>-<system>.jar`. That is the whole
 app; it keeps itself up to date on Windows and Linux. To get menu
-shortcuts, build from source instead:
+shortcuts without building, download `j-installer-<version>.jar` from the
+same page and run `java -jar` on it: it fetches the right app jar, checks
+it and adds the shortcuts. Or build from source:
 
 ### Linux
 

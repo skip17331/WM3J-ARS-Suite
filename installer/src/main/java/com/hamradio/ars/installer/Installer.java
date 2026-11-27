@@ -51,13 +51,37 @@ public final class Installer {
     private Installer() {}
 
     public static void main(String[] args) throws Exception {
-        Path sourceRoot = resolveSourceRoot(args);
         Path home       = Paths.get(System.getProperty("user.home"));
+        boolean download = Standalone.wanted(args, System.getenv("ARS_SUITE_HOME"), Paths.get("").toAbsolutePath().normalize());
 
         banner();
         info("Platform:    " + (WINDOWS ? "Windows" : MAC ? "macOS" : "Linux"));
-        info("Source root: " + sourceRoot);
-        info("User home:   " + home);
+        Path sourceRoot;
+        if (download) {
+            // No build: fetch the newest release jar for this computer into an install folder shaped like a checkout
+            String dirArg = Standalone.option(args, "--dir");
+            Path dir = dirArg != null ? Paths.get(cleanPathArg(dirArg)).toAbsolutePath().normalize()
+                                      : Standalone.installDir(OS_NAME, home, System.getenv("LOCALAPPDATA"));
+            info("Install:     the newest release, downloaded (no build needed)");
+            info("Install dir: " + dir);
+            info("User home:   " + home);
+            System.out.println();
+            try {
+                var http = Standalone.client();
+                String releasesUrl = Standalone.option(args, "--releases-url");
+                sourceRoot = Standalone.install(dir, OS_NAME, System.getProperty("os.arch", ""), http,
+                        releasesUrl != null ? Standalone.fetchReleases(http, releasesUrl) : Standalone.fetchReleases(http));
+            } catch (java.io.IOException e) {
+                System.err.println("[error] " + e.getMessage());
+                System.err.println("        Nothing was changed in your settings. Check the network and run the installer again, or build from source (INSTALL.md).");
+                System.exit(1);
+                return;
+            }
+        } else {
+            sourceRoot = resolveSourceRoot(args);
+            info("Source root: " + sourceRoot);
+            info("User home:   " + home);
+        }
         System.out.println();
 
         JsonObject manifest;
@@ -804,6 +828,6 @@ public final class Installer {
         System.out.println("  +==========================================+");
         System.out.println();
     }
-    private static void info(String s) { System.out.println("[info] " + s); }
-    private static void warn(String s) { System.out.println("[warn] " + s); }
+    static void info(String s) { System.out.println("[info] " + s); }
+    static void warn(String s) { System.out.println("[warn] " + s); }
 }

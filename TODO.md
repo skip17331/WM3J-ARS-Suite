@@ -11,6 +11,10 @@ Contest mode (the contest page and cockpit, contest network, N1MM broadcast, Cab
 - [ ] **S** The Plugin-Builder (separate repository) still writes contest plugins; they no longer load here.
 - [ ] **S** Call history stays (it places a station on J-Map); its Setup text and `CallHistory` doc were rewritten, but the two buttons that read contest logs now read only the normal log.
 
+## 0b. Check after the no-build installer (2026-11-27)
+- [ ] **S** **No-build install** (`java -jar j-installer-<version>.jar`, `installer/.../Standalone.java`, INSTALL.md Option A2; ported from ARS Contest). Run on Linux against the real v1.13.39 release from github.com on a scratch home: downloaded and checked (SHA-256), eight shortcuts written, the second run did not download again, the installed launcher started the app, and the app's own `UpdateApplier` accepts the layout. Not tried on Windows or macOS. The release workflow now also publishes `j-installer-<version>.jar` (named after the tag; a pom that lags the tag only warns), but no release has carried it yet and the workflow has not run with this change. The installer is compiled at Java 11 and says plainly when Java is older than 21.
+- [ ] **S** The in-app updater (`UpdateChecker`) reads `/releases/latest`; the installer reads the same, so a nightly that is the newest release is what gets installed.
+
 ## 1. On hold — verify what shipped in v1.12.2
 Left from v1.12.2.
 - [ ] **S** Log browser: click through the Band / Mode filters and Delete + confirmation (only tested through a harness).
