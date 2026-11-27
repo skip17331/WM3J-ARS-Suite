@@ -14,20 +14,6 @@ class QslLabelTest {
         assertTrue(z.trim().endsWith("^PQ2^XZ"));
     }
 
-    /** A contest QSO's label is the same boxed table: the call, the time and the report sent. */
-    @Test void aContestLabelCarriesTheCallAndReport() {
-        com.jlog.model.QsoRecord r = new com.jlog.model.QsoRecord();
-        r.setCallsign("DL1ABC"); r.setBand("20m"); r.setMode("CW"); r.setFrequency("14025"); r.setRstSent("599");
-        r.setContestId("CQ_WW_CW"); r.setContestField1("599"); r.setContestField2("14");
-        r.setDateTimeUtc(java.time.LocalDateTime.of(2026, 11, 28, 12, 34));
-        QslLabel.Qso q = QslLabel.fromContest(r);
-        assertEquals("CQ WW CW · 599 14", q.exchange());
-        QslLabel.Model m = QslLabel.model("zebra-zd421");
-        String z = QslLabel.zpl(q, m.sizes().get(3), 203, 1);
-        assertTrue(z.contains("DL1ABC"), z);
-        assertTrue(z.contains("2026-11-28") && z.contains("12:34 Z") && z.contains("20M") && z.contains("CW") && z.contains("599"), z);
-    }
-
     @Test void theQslLabelIsATableThenTheThanks() {
         var lines = QslLabel.layout(QslLabel.sample());
         assertEquals(java.util.List.of("To callsign", "Date", "UTC", "Band", "Mode", "RST"), lines.get(0).cells());
@@ -44,9 +30,6 @@ class QslLabelTest {
 
     @Test void aNormalLabelHasNoExchangeLine() {
         assertEquals("", QslLabel.sample().exchange());
-        assertEquals("", QslLabel.contestLine(null, ""));
-        assertEquals("599 14", QslLabel.contestLine("", "599 14"));
-        assertEquals("ARRL SS", QslLabel.contestLine("ARRL_SS", " "));
     }
 
     @Test void everyModelHasSizesAndPositiveDimensions() {

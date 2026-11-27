@@ -1,6 +1,6 @@
 # CLAUDE.md — j-Log Engine
 
-Shared logging engine for the WM3J ARS Suite. No JavaFX dependency. Consumed by `ars-fx`, `j-digi` and `j-bridge`.
+Shared logging engine for the WM3J ARS Suite. (Contest scoring, the contest definitions and Cabrillo export were removed with contest mode; they live on in ARS Contest.) No JavaFX dependency. Consumed by `ars-fx`, `j-digi` and `j-bridge`.
 
 ## Build
 
@@ -17,10 +17,8 @@ engine must be built before `ars-fx` and `j-digi`.** `../build-release.sh` does 
 
 | Package | Responsibility |
 |---------|---------------|
-| `com.jlog.db` | DatabaseManager, QsoDao, ContestQsoDao, ContestQtcDao, TranslationDao, BackupService — SQLite in `~/.j-log/` |
-| `com.jlog.plugin` | PluginLoader, ContestPlugin, MultiplierLists — JSON contest definitions |
-| `com.jlog.scoring` | ContestScorer, DxccResolver and the per-contest multiplier helpers (AriDx, Wag, WaeMultiplier ...) |
-| `com.jlog.export` | CabrilloExporter (ADIF import/export live in `ars-fx`) |
+| `com.jlog.db` | DatabaseManager, TranslationDao, BackupService — SQLite in `~/.j-log/` |
+| `com.jlog.scoring` | DxccResolver |
 | `com.jlog.util` | AppConfig, CallsignRegion, DxccLanguageMap, Maidenhead |
 
 ## What's in j-log-common (not here)
@@ -40,10 +38,8 @@ com.jlog.common`, so engine consumers still see these through us unchanged:
 
 ## Other directories and dependencies
 
-- `parked-plugins/` — contest definition JSONs that are deliberately not packaged or loaded. To enable one, move it
-  to `src/main/resources/com/jlog/plugins/` **and** add it to `PluginLoader`'s `BUNDLED` list (steps in its `README.md`).
 - Third-party libraries beyond SQLite: Jackson, PDFBox, Java-WebSocket, SLF4J + logback. JUnit 5 tests live under
-  `src/test/java/com/jlog/{export,scoring,util}`.
+  `src/test/java/com/jlog/{scoring,util}`.
 
 ## Module
 
@@ -57,6 +53,5 @@ Consumers that don't use JPMS (j-digi) simply add the Maven dependency.
 
 All runtime data lives in `~/.j-log/` (shared with `ars-fx`):
 - `j-log.db` — normal log QSOs
-- `contest.db` — contest QSOs
 - `config.db` — key/value config, macros, DX network profiles
 - `translations.db` — QSO phrase translator

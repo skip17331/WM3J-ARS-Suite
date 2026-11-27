@@ -18,7 +18,7 @@ public final class ModuleConfig {
 
     /** Every module, in dock order. */
     public static final List<Mod> MODULES = List.of(
-        new Mod("log",    "J-Log",    "log",    "Logging & contests"),
+        new Mod("log",    "J-Log",    "log",    "Logging"),
         new Mod("map",    "J-Map",    "map",    "Propagation & DX spots"),
         new Mod("bridge", "J-Bridge", "bridge", "WSJT-X bridge"),
         new Mod("digi",   "J-Digi",   "digi",   "Digital modes"),
@@ -70,7 +70,7 @@ public final class ModuleConfig {
     public static String blurb(String id) {
         return switch (id) {
             case "info"   -> "Upcoming contests and DXpeditions, news and links";
-            case "log"    -> "Logging & contests";
+            case "log"    -> "Logging";
             case "map"    -> "Propagation & DX spots";
             case "sat"    -> "Satellite tracking";
             case "digi"   -> "Digital modes (FT8 / RTTY / PSK)";

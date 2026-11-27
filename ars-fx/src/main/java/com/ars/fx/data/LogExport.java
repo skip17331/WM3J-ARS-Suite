@@ -103,66 +103,6 @@ public final class LogExport {
 
     public static Path defaultBackupDir() { return resolve(null); }
 
-    // ---- a contest log (the log browser's contest view) ---------------------
-
-    /** ADIF for contest QSOs: the usual fields plus the contest's serials (STX / SRX), the exchange received (SRX_STRING) and the contest id. */
-    public static String toAdifContest(List<com.jlog.model.QsoRecord> rows, String cabrilloContestId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("ADIF export — ARS Suite contest log\n");
-        field(sb, "ADIF_VER", "3.1.4"); field(sb, "PROGRAMID", "ARS-Suite-JLog");
-        sb.append("\n<EOH>\n");
-        for (com.jlog.model.QsoRecord q : rows) {
-            java.time.LocalDateTime t = q.getDateTimeUtc();
-            field(sb, "CALL", q.getCallsign());
-            if (t != null) { field(sb, "QSO_DATE", t.format(DateTimeFormatter.BASIC_ISO_DATE)); field(sb, "TIME_ON", t.format(DateTimeFormatter.ofPattern("HHmmss"))); }
-            field(sb, "BAND", q.getBand() == null ? null : q.getBand().toLowerCase());
-            String[] m = mode(q.getMode()); field(sb, "MODE", m[0]); field(sb, "SUBMODE", m[1]);
-            field(sb, "FREQ", ContestFreq.toMhz(q.getFrequency()));          // stored in kHz for Cabrillo; ADIF wants MHz
-            field(sb, "RST_SENT", q.getRstSent()); field(sb, "RST_RCVD", q.getRstReceived());
-            field(sb, "STX", q.getSerialSent()); field(sb, "SRX", q.getSerialReceived());
-            field(sb, "SRX_STRING", exchange(q));
-            field(sb, "CONTEST_ID", cabrilloContestId);
-            field(sb, "COMMENT", q.getNotes());
-            sb.append("<EOR>\n");
-        }
-        return sb.toString();
-    }
-
-    /** CSV for contest QSOs (frequency in kHz, as logged). */
-    public static String toCsvContest(List<com.jlog.model.QsoRecord> rows) {
-        StringBuilder sb = new StringBuilder("Call,Date,Time,Band,Mode,Freq_kHz,RST_Sent,RST_Rcvd,Serial_Sent,Serial_Rcvd,Exchange,Points,Dupe,Notes\n");
-        for (com.jlog.model.QsoRecord q : rows) {
-            java.time.LocalDateTime t = q.getDateTimeUtc();
-            sb.append(String.join(",", csv(q.getCallsign()),
-                    t == null ? "" : t.format(DateTimeFormatter.BASIC_ISO_DATE), t == null ? "" : t.format(DateTimeFormatter.ofPattern("HHmmss")),
-                    csv(q.getBand()), csv(q.getMode()), csv(q.getFrequency()), csv(q.getRstSent()), csv(q.getRstReceived()),
-                    csv(q.getSerialSent()), csv(q.getSerialReceived()), csv(exchange(q)), String.valueOf(q.getPoints()),
-                    q.isDupe() ? "Y" : "", csv(q.getNotes()))).append("\n");
-        }
-        return sb.toString();
-    }
-
-    /** The exchange received, as typed in the contest's fields, e.g. "5NN 05". */
-    public static String exchange(com.jlog.model.QsoRecord q) {
-        StringBuilder b = new StringBuilder();
-        for (String f : new String[]{q.getContestField1(), q.getContestField2(), q.getContestField3(), q.getContestField4(), q.getContestField5()})
-            if (f != null && !f.isBlank()) { if (b.length() > 0) b.append(' '); b.append(f.trim()); }
-        return b.toString();
-    }
-
-    /** Write these contest QSOs (the browser's filtered view, in the order shown) to {@code file}: {@code .csv} is CSV, anything else ADIF. */
-    public static Result exportContest(Path file, List<com.jlog.model.QsoRecord> rows, String cabrilloContestId) {
-        try {
-            boolean csv = file.getFileName().toString().toLowerCase().endsWith(".csv");
-            String body = csv ? toCsvContest(rows) : toAdifContest(rows, cabrilloContestId);
-            if (file.getParent() != null) Files.createDirectories(file.getParent());
-            Files.writeString(file, forExport(body), StandardCharsets.UTF_8);
-            return new Result(true, rows.size(), file.toString(), null);
-        } catch (Exception e) {
-            return new Result(false, 0, null, e.getMessage());
-        }
-    }
-
     /** A log-browser row as an export row (the browser's QTH / name / grid are the same columns the exporter reads). */
     public static JLogDb.QsoExport fromFull(JLogDb.QsoFull q) {
         return new JLogDb.QsoExport(q.call(), q.datetimeUtc(), q.band(), q.mode(), q.freq(), q.powerW(), q.rstSent(),

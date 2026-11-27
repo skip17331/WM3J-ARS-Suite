@@ -32,7 +32,7 @@ remembers that; **Unpin** lets it collapse again.
 |--------|----------------|
 | **Info** | Upcoming contests and DXpeditions, useful links, and ham-radio news headlines |
 | **J-Hub** | The dashboard, where normal logging happens (the QSO form, the DX cluster and the **Log tools** column), and **Setup**, the one screen for every setting |
-| **J-Log** | Contest mode: a page of its own for logging a contest. Normal logging is on the J-Hub dashboard; J-Log no longer has a dock entry |
+| **J-Log** | The everyday log. Quick logging is also on the J-Hub dashboard. (Contest logging is a separate program, ARS Contest.) |
 | **J-Map** | DX map with grayline, propagation, spots and beam headings |
 | **J-Digi** | Built-in digital-mode decoder: CW, RTTY, PSK31, Olivia, MFSK16, DominoEX, AX.25 |
 | **J-Bridge** | Brings WSJT-X decodes (FT8, FT4 and others) into the suite |
@@ -106,8 +106,7 @@ it open) groups the pages:
 | **Radio** | Rig control, Rotor control, Amplifier, Antenna switch, Transmit & macros |
 | **Data & spotting** | DX cluster & RBN, WSJT-X / digital, Callsign lookup, Satellites |
 | **Logbook** | Log database & backup, Online upload, Label printers |
-| **Contest** | Cabrillo & entry |
-| **Network & sharing** | Contest network, N1MM broadcast, Phone web client, Remote sharing |
+| **Network & sharing** | Phone web client, Remote sharing |
 | **System** | Modules, Appearance, J-Learn content |
 
 Choosing a page swaps the right-hand side without leaving the screen.
@@ -151,14 +150,11 @@ Everything that carries data in or out is on these Setup pages.
 
 | Page | What it does |
 |------|--------------|
-| **Log database & backup** | Which database and table the normal log uses, with its QSO count and size (**Open folder**); the **contest databases** (each with its contest, start date and QSO count: **Archive** moves one into storage, **Restore** brings it back; archived logs sit in `~/.j-log/archive/<Contest>_<Year>/`); the **Call history** (see [§4.1](#41-j-log)); and **Backup, export & import**: **Export ADIF** or **Export CSV** to a timestamped file, and **Import ADIF…** into the normal log (QSOs already in it are skipped). **QSO recording** (off by default): with *Record each QSO* on, the app keeps the last two minutes of receive audio (J-Digi's audio input) and saves the last *Seconds per QSO* (default 60) as a WAV file with every QSO you log on the log form, the contest page or the map card, in `~/.j-log/recordings/<date>/` (**Open folder**). |
+| **Log database & backup** | Which database and table the normal log uses, with its QSO count and size (**Open folder**); the **Call history** (see [§4.1](#41-j-log)); and **Backup, export & import**: **Export ADIF** or **Export CSV** to a timestamped file, and **Import ADIF…** into the normal log (QSOs already in it are skipped). **QSO recording** (off by default): with *Record each QSO* on, the app keeps the last two minutes of receive audio (J-Digi's audio input) and saves the last *Seconds per QSO* (default 60) as a WAV file with every QSO you log on the log form, the contest page or the map card, in `~/.j-log/recordings/<date>/` (**Open folder**). |
 | **Online upload** | **LoTW** (signed with TrustedQSL), **eQSL.cc**, **QRZ Logbook**, **Club Log**, **Wavelog**, **Cloudlog** and **HRDLog.net**, each with its login and an **Upload** button (Wavelog and Cloudlog: your log's address, a read/write API key, and the station profile id — the number in the address bar when you edit the station profile; the whole log goes in batches and the log skips QSOs it already has. HRDLog: your HRDLog callsign and its upload code; HRDLog takes one QSO at a time, so the suite keeps track and sends only QSOs it has not sent before, the whole log the first time). **Get confirmations** downloads your LoTW and eQSL confirmations and ticks the matching QSOs. **Note:** eQSL's download does not work if your eQSL password contains a `#`. The password is the same one you use on eqsl.cc, and the website and uploading accept it, but eQSL's download service refuses it. To use Get confirmations for eQSL, change your password on eqsl.cc to one without `#` and enter the new one here. |
-| **Cabrillo & entry** | The categories printed in your Cabrillo file (operator, power, assisted, band, mode, station, club); what you send in Sweepstakes (precedence, check and section); and how the contest page behaves: the mode mixed-mode contests open in, Super Check Partial, and the Cabrillo / CSV character set. |
-| **Contest network** | Host or join a multi-operator contest over the LAN. The shared key must be at least 10 characters, the same on every station, and is kept in your system keyring; everything after the login is encrypted. |
-| **N1MM broadcast** | The **N1MM+ UDP broadcast** (off by default), which sends your contest log to GridTracker, Log4OM and the like, and lets a waterfall or band map tune the rig. |
 | **Phone web client** | The phone web client (off by default, see [§4.10](#410-phone-web-client)). |
 | **Label printers (beta)** | Printer model (Brother QL, DYMO LabelWriter, Zebra, Rollo or any system printer), label stock, printer or network address, copies and a **Test print** button. Used by **Print QSL label** on the New QSO form. |
-| **DX cluster & RBN** | A **pick list of clusters** (or type your own `host:port`; one runs at a time), login callsign, auto-connect, band and mode filters, and **connection tries** (the retry limit; 0 keeps trying); the Reverse Beacon Network has its own auto-connect and retry limit. **Spot alerts** (off by default): a card in the bottom-left corner and a chime when a spot arrives for a call on your **watch list** (calls or prefixes such as `VP8*`) or one your log needs (NEW ONE / NEW BAND / NEW MODE, or a new multiplier on the contest page); click a spot in the card to use it. The same call on the same band alerts once every 30 minutes. With a **Club Log token** (Club Log ▸ Settings ▸ API) the app keeps Club Log's **Most Wanted** ranking (fetched at most once a month): each spot's tooltip shows the entity's place, and **Alert on Club Log Most Wanted** alerts on the top N. With a **Club Log API key**, **Club Log DXCC exceptions** (**Update now**) fetches the calls Club Log places by hand for a date range (DXpeditions, special events), so those calls get the right entity. |
+| **DX cluster & RBN** | A **pick list of clusters** (or type your own `host:port`; one runs at a time), login callsign, auto-connect, band and mode filters, and **connection tries** (the retry limit; 0 keeps trying); the Reverse Beacon Network has its own auto-connect and retry limit. **Spot alerts** (off by default): a card in the bottom-left corner and a chime when a spot arrives for a call on your **watch list** (calls or prefixes such as `VP8*`) or one your log needs (NEW ONE / NEW BAND / NEW MODE); click a spot in the card to use it. The same call on the same band alerts once every 30 minutes. With a **Club Log token** (Club Log ▸ Settings ▸ API) the app keeps Club Log's **Most Wanted** ranking (fetched at most once a month): each spot's tooltip shows the entity's place, and **Alert on Club Log Most Wanted** alerts on the top N. With a **Club Log API key**, **Club Log DXCC exceptions** (**Update now**) fetches the calls Club Log places by hand for a date range (DXpeditions, special events), so those calls get the right entity. |
 | **WSJT-X / digital** | UDP port (2237), auto-log FT8/FT4 contacts, and the local CW skimmer. |
 | **Callsign lookup** | Callook.info (free, US), HamQTH, QRZ.com XML, QRZCQ, HamCall, and a local CSV callbook file. Tried top to bottom; the first answer fills name, QTH, grid, state and county. |
 | **Satellites** | See [§3.4](#34-satellites). |
@@ -192,50 +188,24 @@ Switch each module on or off under **Setup ▸ Modules**. J-Hub itself is always
 
 ### 4.1 J-Log
 
-Logging is in two places: **normal logging** on the J-Hub dashboard, and **contest mode**, a page of its own. A bar
-across the top of each always tells you which database you are writing to, with **Switch database** and
-**Database tools ›** (which opens Setup ▸ Log database & backup).
+A bar across the top tells you which database you are writing to, with **Database tools ›** (which opens Setup ▸ Log database & backup).
 
-**Normal logging (the J-Hub dashboard)**
+**Logging (the J-Hub dashboard and the J-Log page)**
 
 - **New QSO** — callsign, band, mode, frequency, RST sent and received, name, QTH, state, county, grid, power and
   comment, then **Log QSO ⏎**. Type the frequency in MHz (`14.025`), kHz (`14025`) or with a decimal comma
   (`14,025`); it is saved in MHz and the band follows. Typing a call looks it up (see *Callsign lookup* above) and shows its DXCC entity,
   beam heading and your previous contacts with it. **Print QSL label** prints a label for each new QSO when you save it; pick the printer in Setup ▸ Label printers. *(Beta.)*
 - **IOTA, SOTA and POTA** — optional fields for the other station's island, summit and park (hunter credit), with lookups, and **Confirmed** boxes for a paper QSL, LoTW or eQSL. Import an ADIF file downloaded from LoTW or eQSL, or use **Get confirmations** (Setup ▸ Online upload), and the QSOs already in your log are marked confirmed.
-- **Recent log** — your latest QSOs; select one to edit or delete it. **Browse full log ⤢** opens every QSO in a sortable, searchable table (sort by any column heading, search by call, name, QTH, grid, state, county or notes, filter by band and mode; double-click a row to edit it). Contest logs show there too: a QSO of the contest open on
-  the contest page can be edited (it loads into the contest form) or erased; other contest logs are view-only.
+- **Recent log** — your latest QSOs; select one to edit or delete it. **Browse full log ⤢** opens every QSO in a sortable, searchable table (sort by any column heading, search by call, name, QTH, grid, state, county or notes, filter by band and mode; double-click a row to edit it)..
 - **DX Cluster** — live spots with a **Console** button that opens a raw-feed pop-up with a command line (history, and
   shortcuts such as `SH/DX 20` and `SET/FT8`). The status is always **Disconnected**, **Connecting** or **Connected**,
   and **Stop** cancels a connection that is not coming up. A spot that would be a **new DXCC entity, band or mode** for you is tagged.
-- **Log tools column** — *Log mode* (the way into contest mode), *RTTY / CW · TX & RX* (a text pane for the modem), *Heard By* and *Skimmer* (who has heard you on the Reverse Beacon Network, and CW skimmer decodes), *Awards*, *Translator* and *Database tools*.
+- **Log tools column** — *RTTY / CW · TX & RX* (a text pane for the modem), *Heard By* and *Skimmer* (who has heard you on the Reverse Beacon Network, and CW skimmer decodes), *Awards*, *Translator* and *Database tools*.
 
 **Awards.** The Awards drawer, or the **Awards** button on the dock, shows DXCC, WAS, WAC, grid squares, IOTA, POTA, SOTA and the CQ / ITU zones, each as worked / confirmed of its target. **Open awards ⤢** opens the full screen, with tabs for a *Summary*, a *DXCC* band-by-band matrix, *WAS*, *WAC*, *Grids*, *IOTA*, *POTA*, *SOTA*, *Zones*, endorsement *Levels* and **My awards**. A QSO's own CQ / ITU zone counts when it has one; otherwise the zone comes from the callsign's country and, in countries that span several CQ zones, from the worked station's grid square. **My awards** tracks award sheets of your own, such as a special-event certificate: use **New award…**, or **From template** for the 13 Colonies. A call whose DXCC entity cannot be worked out is left out of the DXCC count.
 
-**Contest mode** — in the *Log mode* drawer, press **⇄ Contest mode…**.
-
-1. **Choose a contest** from the list of over 80 supported contests, 46 of them state and province QSO parties (there is a search box). J-Log offers the last one you used first.
-2. **Choose a database.** Either **continue an existing one** (each is shown with its contest and start date), or
-   **start a new one**. A new log gets a suggested name such as `NovSwpSSB2026.db`, which you can change. Asked each time you enter contest mode.
-3. **Say what you send.** Anything of your own exchange that Setup does not know (for example your Sweepstakes section) is asked once per contest.
-4. **Log on one screen.** Down the left: the entry bar built from the contest's exchange, with the **SEND** line (exactly what to say or key, built from your Setup details; **Edit** changes it) and a live score line: QSOs, mults, points, score, 10- and 60-minute rates, a **mults left** tile, and a **contest clock** once you have set the times. Below the entry are the last QSOs, with **Edit** and **Erase** on each (and **All QSOs →** for the lot). On the right: the DX cluster over the contest's own tabs (multiplier trackers and maps, dupe and worked-before panes, statistics).
-5. **LOG TOOLS** is a column beside the dock (it folds to a strip; **Pin** keeps it open). Its **Contest** drawer holds **Export Cabrillo ⤓** (writes the file for submission, using the categories set in Setup ▸ Contest ▸ Cabrillo & entry; dupes are kept in it, as ARRL and CQ ask, CLAIMED-SCORE is the score the page shows, and a multi-op entry lists its OPERATORS), **Contest times…**, **Layout…** (a reminder note, the order of the tabs and of the exchange fields), **Change contest** and **Leave contest**. Its **Translator** drawer follows the call you are logging.
-
-What the contest page does for you:
-
-- **Type-ahead.** Section, county and state fields suggest from the contest's list as you type.
-- **County lines** (QSO parties). A station on a county line sends both counties: type them with a slash, `ADA/CAN`, and it
-  is logged as one QSO per county. The same works in your own county field when you are mobile on a line (one QSO per pair
-  when both stations are on lines). Each county is checked on its own, and only the combinations that are not dupes are logged.
-  In the Mississippi QSO Party a mobile's score is worked out per county and added up, as its rules say.
-- **Validation.** A section, precedence, zone or callsign that can never be valid is refused. Where the list is not definitive (a state or county in a QSO party that is not recognised) it warns and asks for a second **Enter**.
-- **Dupes** ask permission before they are logged.
-- **Exchange memory and call history.** A station you have worked before in this contest has its exchange filled in. For a station you have not, the **call history** fills it from what that station usually sends (state, section, zone, grid, name, Sweepstakes precedence and check); anything filled in is marked, and you check it before you log. The history learns from your own contest QSOs and can be rebuilt from your logs (**Setup ▸ Log database & backup ▸ Call history ▸ Build from my logs**) or seeded from a call history CSV file (**Import file…**; N1MM+ call history files work). Your own QSOs always win over imported values.
-- **NEW MULT tags** on cluster spots. Where the multiplier comes from the callsign (CQ WW, All Asian, Oceania, WAE and most QSO parties) a spot that would add a multiplier is tagged **NEW MULT**. Where the multiplier is in the exchange (Sweepstakes sections, ARRL DX states, Field Day...) the tag is **NEW MULT?**: a guess from the call history, shown only when the history has a value the contest accepts.
-- **Super Check Partial** and the **band map** are on the page as well.
-- **Network mode.** Under Setup ▸ Network & sharing ▸ Contest network, one station can host and others join; every station keeps a full copy of the contest log, and a strip on the contest page shows who is joined and what each is on.
-
-Contest databases live in `~/.j-log/contest-logs/`. When you finish with one, archive it from Setup ▸ Log database & backup.
+**Contests.** Contest logging is not part of this suite any more: it is a separate program, **ARS Contest** (the WM3J-Contest-Suite repository), which can run on the same PC and share this suite's J-Hub. Old contest logs from earlier versions stay in `~/.j-log/contest-logs/`; nothing here reads them.
 
 **Translator.** Pick a language and a phrase; it shows the phrase in that language with a pronunciation guide to
 say it with. It covers Spanish, German, French, Italian and Portuguese, and, set to *By country*, it follows the DXCC country of the
@@ -271,7 +241,7 @@ Clicking a spot on the map or in the list tunes the rig and pops up the station'
 **New QSO** form, filled in from the spot. Press **Enter** to log it to your **normal log**, or **Esc** or **Clear** to
 drop it. Drag the form by its top row. **Pin** moves it into a drawer in the right column, where it stays and empties after each QSO; while it is docked, a
 spot click fills it directly and the pop-up has no **Log this** button. **+
-QSO** at the top left of the map opens a blank card. Contest logging is in J-Log contest mode.
+QSO** at the top left of the map opens a blank card. Contest logging is in ARS Contest.
 
 Set your latitude and longitude first. Distances follow your Units setting.
 
@@ -416,7 +386,7 @@ voice file**. Macros are built from your station data and can use **tags** — `
 forty more, listed under *Macro tags* on that page. Fields you have not filled in simply stay empty. **Rebuild from
 station data** regenerates the defaults.
 
-**What a key sends** is chosen next to the macro buttons in J-Log, J-Log-Quick and contest mode, with the
+**What a key sends** is chosen next to the macro buttons in J-Log and J-Log-Quick, with the
 **Macros send as** tick boxes: **CW / data** or **Voice**. With neither ticked, the key follows the mode field (CW, RTTY
 and digital modes send the text; SSB and the other phone modes play the voice file).
 
@@ -497,9 +467,6 @@ value.
 **Log import skipped some QSOs.** *Import ADIF…* skips a QSO whose call, minute, band and mode are already in the
 log, and reports records it could not read (no call or no date).
 
-**Switching to contest mode shows no database.** Each contest keeps its own database in `~/.j-log/contest-logs/`;
-choose **start a new one**, or **Restore** an archived log in Setup ▸ Log database & backup.
-
 **The window is blank or garbled after an update.** Rebuild or re-download the jar for your platform — a jar built for
 another OS gives JavaFX errors. See [INSTALL.md § Common problems](INSTALL.md#common-problems).
 
@@ -520,8 +487,6 @@ expected and what happened. If you started the app from a terminal, include any 
 | `~/.j-hub/propcheck/observations.csv` | The paths the propagation check has heard (the newest 20,000) |
 | `~/.j-log/j-log.db` | Normal log |
 | `~/.j-log/callhistory.db` | Call history: each station's usual state, section, zone, grid and name |
-| `~/.j-log/contest-logs/` | Contest databases (one per contest and year) |
-| `~/.j-log/archive/<Contest>_<Year>/` | Archived contest databases |
 | `~/.j-log/backups/` | ADIF and CSV exports |
 | `~/.j-hub/cty/cty.dat` | The refreshed country files (the suite also carries a copy) |
 | `~/.j-hub/info/` | Saved copies of the Info page's calendars and news feeds |
@@ -533,7 +498,7 @@ expected and what happened. If you started the app from a terminal, include any 
 | `~/.j-sat/tles.txt` | Downloaded orbital elements |
 | `~/.j-map/` | Cached map data |
 
-Passwords, API keys and tokens (upload and lookup logins, the Club Log token, the contest network key) are kept in your
+Passwords, API keys and tokens (upload and lookup logins, the Club Log token) are kept in your
 system's keyring: Windows Credential Manager, the macOS Keychain or the Linux Secret Service (`secret-tool`). Where there
 is none they stay in `upload.json` / `lookup.json` / `config.json`, readable by your account only; see
 [LEGAL.md](LEGAL.md). To move to a new computer, copy `~/.j-hub/`, `~/.j-log/` and `~/.j-vault/`, then enter your

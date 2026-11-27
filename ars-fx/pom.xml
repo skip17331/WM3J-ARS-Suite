@@ -48,7 +48,7 @@
         <dependency><groupId>org.slf4j</groupId><artifactId>slf4j-api</artifactId><version>2.0.13</version></dependency>
         <!-- J-Sat satellite registry + ~/.j-sat settings JSON parsing -->
         <dependency><groupId>com.google.code.gson</groupId><artifactId>gson</artifactId><version>2.10.1</version></dependency>
-        <!-- Contest mode reuses the pure scoring/plugin/Cabrillo engine. Pinned explicitly so the API version is deterministic. -->
+        <!-- The engine (databases, DXCC resolver, translations). Pinned explicitly so the API version is deterministic. -->
         <dependency><groupId>com.jlog</groupId><artifactId>j-log-engine</artifactId><version>1.13.39</version>
             <exclusions><exclusion><groupId>org.openjfx</groupId><artifactId>*</artifactId></exclusion></exclusions></dependency>
         <!-- J-Digi embeds the real modem engine (ModemService); same JavaFX/gson/slf4j versions.
@@ -61,7 +61,7 @@
         <dependency><groupId>com.google.zxing</groupId><artifactId>core</artifactId><version>3.5.3</version></dependency>
         <!-- Solo J-Map/J-Sat ⇄ station J-Hub link (same WS lib the suite's central hub uses) -->
         <dependency><groupId>org.java-websocket</groupId><artifactId>Java-WebSocket</artifactId><version>1.5.6</version></dependency>
-        <!-- PluginLoader/ContestPlugin parse contest JSON with Jackson; pin so the shade keeps it. -->
+        <!-- JSON (DXCC prefix table, the Morse Trainer settings); pin so the shade keeps it. -->
         <dependency><groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-databind</artifactId><version>2.17.0</version>
             <!-- 2.17.0's pom wrongly lists byte-buddy as a compile dependency; nothing here uses it -->
             <exclusions><exclusion><groupId>net.bytebuddy</groupId><artifactId>byte-buddy</artifactId></exclusion></exclusions></dependency>

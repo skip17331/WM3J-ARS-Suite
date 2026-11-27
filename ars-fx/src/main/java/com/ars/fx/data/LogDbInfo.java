@@ -6,19 +6,15 @@ import java.nio.file.Paths;
 
 /**
  * Which database file and table J-Log is writing to, in plain terms, so the UI can show it.
- * Two stores: the normal log ({@code j-log.db}, table {@code qso}) and the contest log
- * ({@code contest.db}, table {@code contest_qso}, rows keyed by contest id).
+ * The log database ({@code j-log.db}, table {@code qso}).
  */
 public final class LogDbInfo {
     private LogDbInfo() {}
 
     public static final String NORMAL_TABLE = "qso";
-    public static final String CONTEST_TABLE = "contest_qso";
 
     public static Path dataDir()     { return Paths.get(System.getProperty("user.home"), ".j-log"); }
     public static Path normalPath()  { return JLogDb.path(); }
-    /** The contest database in use right now (a named file under contest-logs/, or the original contest.db). */
-    public static Path contestPath() { return ContestLogs.current(); }
 
     /** Path with the home directory shown as {@code ~}. */
     public static String pretty(Path p) {
@@ -37,13 +33,6 @@ public final class LogDbInfo {
 
     /** One line for the normal log, e.g. "~/.j-log/j-log.db · table qso". */
     public static String normalLine()  { return pretty(normalPath()) + " · table " + NORMAL_TABLE; }
-
-    /** One line for the contest log, naming the active contest when there is one. */
-    public static String contestLine() {
-        ContestState.ensureLoaded();   // also brings the engine up, so contestPath() is the real file
-        var p = ContestState.plugin();
-        return pretty(contestPath()) + " · table " + CONTEST_TABLE + (p == null ? " · no contest selected" : " · " + p.getContestName());
-    }
 
     /** Open a folder in the desktop file manager (best effort). */
     public static boolean openFolder(Path dir) {

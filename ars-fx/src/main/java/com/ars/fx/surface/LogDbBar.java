@@ -16,36 +16,24 @@ import static com.ars.fx.shell.Shell.lbl;
 final class LogDbBar {
     private LogDbBar() {}
 
-    static HBox build(boolean contest) {
-        Label where = lbl("⛁  Log in use: " + (contest ? LogDbInfo.contestLine() : LogDbInfo.normalLine()), "jl-emeta");
+    static HBox build() {
+        Label where = lbl("⛁  Log in use: " + LogDbInfo.normalLine(), "jl-emeta");
         where.setMinWidth(0);
-        Tooltip.install(where, new Tooltip(contest
-                ? "Contest QSOs are stored in a separate database from your normal log.\n" + LogDbInfo.contestPath()
-                : "Normal-log QSOs are stored here.\n" + LogDbInfo.normalPath()));
+        Tooltip.install(where, new Tooltip("Normal-log QSOs are stored here.\n" + LogDbInfo.normalPath()));
         Region gap = new Region(); HBox.setHgrow(gap, Priority.ALWAYS);
         Label tools = lbl("Database tools ›", "jl-clearbtn"); tools.setStyle("-fx-cursor:hand;");
         tools.setOnMouseClicked(e -> Shell.navigate("setup:logdb"));   // J-Hub ▸ Data: database info, export, upload
         HBox bar = new HBox(10, where, gap);
-        if (contest) {
-            Label sw = lbl("Switch database", "jl-clearbtn"); sw.setStyle("-fx-cursor:hand;");
-            sw.setOnMouseClicked(e -> JLogContest.switchDatabase(sw));
-            bar.getChildren().add(sw);
-        }
         bar.getChildren().add(tools);
         bar.setAlignment(Pos.CENTER_LEFT); bar.setPadding(new Insets(0, 18, 6, 18));
         return bar;
     }
 
-    /** The same information as a LOG TOOLS drawer for the contest page: which database is in use, Switch database, Database tools. */
-    static javafx.scene.Node drawer(boolean contest) {
-        Label where = lbl(contest ? LogDbInfo.contestLine() : LogDbInfo.normalLine(), "jl-emeta"); where.setWrapText(true);
-        Tooltip.install(where, new Tooltip(String.valueOf(contest ? LogDbInfo.contestPath() : LogDbInfo.normalPath())));
+    /** The same information as a drawer: which database is in use, Database tools. */
+    static javafx.scene.Node drawer() {
+        Label where = lbl(LogDbInfo.normalLine(), "jl-emeta"); where.setWrapText(true);
+        Tooltip.install(where, new Tooltip(String.valueOf(LogDbInfo.normalPath())));
         javafx.scene.layout.VBox body = new javafx.scene.layout.VBox(8, where);
-        if (contest) {
-            Label sw = lbl("Switch database", "jl-clearbtn"); sw.setStyle("-fx-cursor:hand;");
-            sw.setOnMouseClicked(e -> JLogContest.switchDatabase(sw));
-            body.getChildren().add(sw);
-        }
         Label tools = lbl("Database tools \u203a", "jl-clearbtn"); tools.setStyle("-fx-cursor:hand;");
         tools.setOnMouseClicked(e -> Shell.navigate("setup:logdb"));
         body.getChildren().add(tools);

@@ -15,7 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Periodically snapshots the log / contest / config SQLite databases to
+ * Periodically snapshots the log / config SQLite databases to
  * {@code ~/.j-log/backups/YYYYMMDD-HHmmss/}. Cadence and retention count
  * are configurable via {@link AppConfig}. Old snapshot directories beyond
  * the retention count are pruned after each successful backup.
@@ -73,7 +73,7 @@ public class BackupService {
             Files.createDirectories(dest);
 
             int copied = 0;
-            for (String dbName : new String[]{"j-log.db", "contest.db", "config.db"}) {
+            for (String dbName : new String[]{"j-log.db", "config.db"}) {
                 Path src = dataDir.resolve(dbName);
                 if (!Files.exists(src)) continue;
                 Files.copy(src, dest.resolve(dbName), StandardCopyOption.REPLACE_EXISTING);

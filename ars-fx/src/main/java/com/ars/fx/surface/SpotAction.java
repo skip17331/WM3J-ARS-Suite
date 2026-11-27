@@ -43,7 +43,6 @@ public final class SpotAction {
     public record Prefill(String call, String freqMhz, String band, String mode) {}
 
     private static volatile Consumer<Prefill> logTarget;     // set by the live J-Log normal form
-    private static volatile Consumer<Prefill> contestTarget; // set by the live J-Log contest form
     private static volatile Consumer<Prefill> quickTarget;   // set while the J-Log-Quick card is on screen (J-Hub dashboard)
     private static volatile Prefill pending;                 // queued when neither log form is on screen
 
@@ -53,15 +52,12 @@ public final class SpotAction {
 
     /** The J-Log form registers how to fill itself (called each time it is built). */
     public static void setLogTarget(Consumer<Prefill> t) { logTarget = t; }
-    /** The J-Log contest form registers how to fill itself. */
-    public static void setContestTarget(Consumer<Prefill> t) { contestTarget = t; }
     /** J-Log build() pulls (and clears) a queued prefill so a spot picked elsewhere lands in the fresh form. */
     public static Prefill takePending() { Prefill p = pending; pending = null; return p; }
 
     /** Fill whichever log form is on screen in this window; false when none is. */
     private static boolean fillLiveForm(Prefill pf) {
-        if ("logc".equals(Shell.currentSurface) && contestTarget != null) contestTarget.accept(pf);
-        else if ("log".equals(Shell.currentSurface) && logTarget != null) logTarget.accept(pf);
+        if ("log".equals(Shell.currentSurface) && logTarget != null) logTarget.accept(pf);
         else if (quickTarget != null && "hub".equals(Shell.currentSurface)) quickTarget.accept(pf);   // the dashboard's J-Log-Quick is visible: fill it now (on any other page its form is hidden: queue for J-Log instead)
         else return false;
         return true;

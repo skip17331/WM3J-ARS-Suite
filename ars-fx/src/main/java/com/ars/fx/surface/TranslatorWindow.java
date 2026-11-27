@@ -2,7 +2,6 @@ package com.ars.fx.surface;
 
 import com.ars.fx.Theme;
 import com.ars.fx.Themes;
-import com.ars.fx.data.ContestConfigBridge;
 import com.jlog.db.TranslationDao;
 import com.jlog.model.Translation;
 import com.jlog.scoring.DxccResolver;
@@ -69,7 +68,7 @@ final class TranslatorWindow {
     /** Open the translator (or bring it forward). {@code call} seeds the country when "By country" is on. */
     static void show(Node owner, String call) {
         if (stage != null) { stage.show(); stage.toFront(); if (call != null && !call.isBlank()) follow(call); return; }
-        ContestConfigBridge.bootstrap();                  // opens ~/.j-log/translations.db and seeds the starter phrases
+        try { Class.forName("org.sqlite.JDBC"); com.jlog.db.DatabaseManager.getInstance().initAll(); } catch (Throwable e) { System.err.println("[translator] database start failed: " + e.getMessage()); }   // opens ~/.j-log/translations.db and seeds the starter phrases
         TranslationDao dao = TranslationDao.getInstance();
 
         ObservableList<Row> all = FXCollections.observableArrayList();

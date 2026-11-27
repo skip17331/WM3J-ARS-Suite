@@ -102,15 +102,6 @@ public final class JLogCockpit {
         });
         return pane;
     }
-    /** Log mode: normal log (current) and the way into contest mode. */
-    private static Node logModeDrawer() {
-        Label cur = lbl("\u25cf Normal log", "jl-skim-meta"); cur.setStyle("-fx-font-weight:bold;-fx-text-fill:-ars-ok;");
-        Label where = lbl("Logging to " + com.ars.fx.data.LogDbInfo.normalLine(), "jl-emeta"); where.setWrapText(true);
-        Label contest = lbl("\u21c4 Contest mode\u2026", "jl-clearbtn"); contest.setStyle("-fx-cursor:hand;");
-        com.ars.fx.shell.Tips.tip(contest, "Switch to the contest page. Contest QSOs go to a contest database of their own.");
-        contest.setOnMouseClicked(e -> JLogContest.promptEnter(contest));
-        return Shell.drawer("Log mode", "log", "log", "Normal", true, new VBox(8, cur, where, contest));
-    }
     /** Translator: QSO phrases in other languages, following the call being logged. */
     private static Node translatorDrawer() {
         Label open = lbl("Open translator", "jl-clearbtn"); open.setStyle("-fx-cursor:hand;");
@@ -126,39 +117,15 @@ public final class JLogCockpit {
         return Shell.drawer("Database tools", "vault", "vault", "", false, new VBox(8, where, tools));
     }
 
-    /** The J-Log-only drawers (Log mode, RTTY/CW TX & RX, Heard By, Awards, Skimmer, Translator, Database tools) for the dashboard's collapsing side column. Call after {@link #embeddedEntry()}. */
+    /** The J-Log-only drawers (RTTY/CW TX & RX, Heard By, Awards, Skimmer, Translator, Database tools) for the dashboard's collapsing side column. Call after {@link #embeddedEntry()}. */
     static Node[] sideDrawers() {
         List<Node> out = new ArrayList<>();
-        out.add(logModeDrawer());
         if (embeddedTx != null) out.add(embeddedTx);
         out.add(heardByDrawer()); out.add(awardsDrawer()); out.add(skimmerDrawer());
         out.add(translatorDrawer()); out.add(databaseDrawer());
         return out.toArray(new Node[0]);
     }
 
-    /** The drawer the contest page's LOG TOOLS column carries besides its own Contest drawer: the Translator, following the call being logged. (Awards and Database tools read the normal log, so they stay off the contest page.) */
-    static Node[] contestSideDrawers(java.util.function.Supplier<String> call) {
-        Label open = lbl("Open translator", "jl-clearbtn"); open.setStyle("-fx-cursor:hand;");
-        open.setOnMouseClicked(e -> TranslatorWindow.show(open, call.get()));
-        Label hint = lbl("QSO phrases in other languages; follows the country of the callsign you are logging.", "jl-emeta"); hint.setWrapText(true);
-        Node translator = Shell.drawer("Translator", "learn", "learn", "", false, new VBox(8, hint, open));
-        return new Node[]{translator};
-    }
-
-    /** Is this call already in the normal log? The set of calls is re-read at most every ten seconds. */
-    private static java.util.function.Predicate<String> normalWorked() {
-        java.util.Set<String>[] calls = new java.util.Set[]{java.util.Set.of()};
-        long[] at = {0};
-        return c -> {
-            long now = System.currentTimeMillis();
-            if (now - at[0] > 10_000) {
-                java.util.Set<String> s = new java.util.HashSet<>();
-                for (String k : com.ars.fx.data.JLogDb.workedCallBands()) s.add(k.substring(0, k.indexOf('|')));
-                calls[0] = s; at[0] = now;
-            }
-            return calls[0].contains(c.toUpperCase());
-        };
-    }
 
     private static VBox entryPane() {
         // header
@@ -169,13 +136,11 @@ public final class JLogCockpit {
         if (embedded) { HBox t = new HBox(10, titleLbl, sub); t.setAlignment(Pos.BASELINE_LEFT); ttl = t; }     // dashboard: one slim line
         else ttl = new VBox(1, titleLbl, sub);
         Region hsp = new Region(); HBox.setHgrow(hsp, Priority.ALWAYS);
-        Label contestChip = lbl("⇄ Contest mode", "jl-clearbtn"); contestChip.setStyle("-fx-cursor:hand;");
-        contestChip.setOnMouseClicked(e -> JLogContest.promptEnter(contestChip));
         final String idleB4 = embedded ? "" : "Normal log";    // merged page: the header shows only the worked-before / dupe status
         Label b4 = lbl(idleB4, "jl-eyebrow");   // worked-before / dupe / status
         Label translatorChip = lbl("Translator", "jl-clearbtn"); translatorChip.setStyle("-fx-cursor:hand;");
         com.ars.fx.shell.Tips.tip(translatorChip, "QSO phrases in other languages — follows the country of the callsign you are logging");
-        HBox head = embedded ? new HBox(11, ic, ttl, hsp, b4) : new HBox(11, ic, ttl, hsp, translatorChip, contestChip, b4);
+        HBox head = embedded ? new HBox(11, ic, ttl, hsp, b4) : new HBox(11, ic, ttl, hsp, translatorChip, b4);
         head.setAlignment(Pos.CENTER_LEFT);
         if (embedded) head.getStyleClass().add("jhub-card-head");     // the dashboard card gets the same coloured title strip as the other cards
 
@@ -250,10 +215,6 @@ public final class JLogCockpit {
             head.getChildren().add(head.getChildren().indexOf(hsp) + 1, bandCap);
             body.getChildren().add(new Region());
         } else body.getChildren().add(bandCap);
-        // Super Check Partial under the call, as in contest mode; a call already in the log is ticked
-        com.ars.fx.surface.contest.ScpBox scp = new com.ars.fx.surface.contest.ScpBox(c -> { call.setText(c); call.requestFocus(); call.positionCaret(c.length()); }, normalWorked());
-        call.textProperty().addListener((o, a, b) -> scp.update(b));
-        body.getChildren().add(scp);
         body.getChildren().add(row(g("RST SENT", rsnt, false), g("RST RCVD", rrcv, false), g("NAME", name, false), g("GRID", grid, false)));
         body.getChildren().add(row(g("QTH", qth, false), g("STATE", stat, false), g("COUNTY", cnty, false), g("POWER (W)", pwr, false)));
         body.getChildren().add(dtRow);
@@ -332,7 +293,6 @@ public final class JLogCockpit {
         Consumer<Long> onDelete = id -> {
             JLogDb.QsoFull gone = JLogDb.byId(id);
             if (JLogDb.delete(id)) {
-                if (gone != null) com.ars.fx.data.N1mmBroadcast.normalDeleted(com.ars.fx.data.N1mmBroadcast.of(gone));
                 if (editId[0] == id) exitEdit.run();
                 refresh[0].run();
                 sub.setText(JLogDb.count() + " in log · " + JLogDb.countToday() + " today");
@@ -369,10 +329,6 @@ public final class JLogCockpit {
                 if (editId[0] < 0) { com.ars.fx.data.SessionQsos.logged(call.getText(), grid.getText(), bandVal, mode.getText()); com.ars.fx.shell.IdTimer.reset(); com.ars.fx.data.QsoRecorder.logged(call.getText(), bandVal, mode.getText()); com.ars.fx.data.AutoUpload.afterLog(); }   // J-Map's session arcs; LoTW / eQSL auto-upload
                 long rowId = editId[0] >= 0 ? editId[0] : JLogDb.maxId();
                 JLogDb.QsoFull saved = JLogDb.byId(rowId);
-                if (saved != null) {
-                    if (editId[0] >= 0) com.ars.fx.data.N1mmBroadcast.normalEdited(com.ars.fx.data.N1mmBroadcast.of(saved), before == null ? saved.call() : before.call());
-                    else com.ars.fx.data.N1mmBroadcast.normalAdded(com.ars.fx.data.N1mmBroadcast.of(saved));
-                }
                 if (editId[0] < 0) printQsl.afterSave(new com.ars.fx.data.QslLabel.Qso(call.getText(), dt, freq.getText(), bandVal,
                         mode.getText(), rsnt.getText(), rrcv.getText(), name.getText(), qth.getText()));
                 exitEdit.run();
@@ -429,7 +385,7 @@ public final class JLogCockpit {
         lookupRef = doCallLookup;
         call.focusedProperty().addListener((o, was, now) -> { if (!now) doCallLookup.run(); });
 
-        VBox entry = embedded ? new VBox(0, head, body) : new VBox(0, head, LogDbBar.build(false), body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(embedded ? Double.MAX_VALUE : 940);
+        VBox entry = embedded ? new VBox(0, head, body) : new VBox(0, head, LogDbBar.build(), body); entry.getStyleClass().add("jl-entry"); entry.setMaxWidth(embedded ? Double.MAX_VALUE : 940);
         if (embedded) { entry.setStyle("-fx-padding:0;"); body.setPadding(new Insets(12, 18, 16, 18)); }   // no inset, so the title strip runs edge to edge like the other cards'   // the dashboard card is as wide as the page
         // F1–F8 keyboard shortcuts for the macros (registered once the entry is on a scene).
         entry.sceneProperty().addListener((o, oldS, s) -> {

@@ -10,10 +10,10 @@ import java.sql.*;
 
 /**
  * Central database manager.
- * Manages three SQLite databases:
- *   1. j-log.db        — QSO log (normal)
- *   2. contest.db       — QSO log (contest)
- *   3. config.db        — Application config, macros, etc.
+ * Manages the SQLite databases:
+ *   1. j-log.db        — QSO log
+ *   2. config.db        — Application config, macros, etc.
+ *   3. translations.db  — QSO phrase translator
  */
 public class DatabaseManager {
 
@@ -21,15 +21,12 @@ public class DatabaseManager {
     private static final DatabaseManager INSTANCE = new DatabaseManager();
 
     private Connection logConn;
-    private Connection contestConn;
     private Connection configConn;
     /** QSO phrase translator — independent DB so power users can ship a
      *  shared translations.db between machines without touching the log. */
     private Connection translationsConn;
 
     private Path dataDir;
-    /** The file the contest connection currently points at ({@code contest.db} unless switched). */
-    private Path contestDbPath;
 
     private DatabaseManager() {}
 
@@ -40,13 +37,10 @@ public class DatabaseManager {
         dataDir.toFile().mkdirs();
 
         logConn          = openDb(dataDir.resolve("j-log.db").toString());
-        contestDbPath    = dataDir.resolve("contest.db");
-        contestConn      = openDb(contestDbPath.toString());
         configConn       = openDb(dataDir.resolve("config.db").toString());
         translationsConn = openDb(dataDir.resolve("translations.db").toString());
 
         applyLogSchema();
-        applyContestSchema();
         applyConfigSchema();
         applyTranslationsSchema();
         log.info("Databases initialised in {}", dataDir);
@@ -113,137 +107,6 @@ public class DatabaseManager {
         try (Statement st = logConn.createStatement()) {
             st.executeUpdate("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
             log.info("Upgraded {}: added column {}", table, column);
-        }
-    }
-
-    private void addContestColumnIfMissing(Statement st, String column, String type) throws SQLException {
-        if (contestColumnExists(column)) return;
-        st.executeUpdate("ALTER TABLE contest_qso ADD COLUMN " + column + " " + type);
-        log.info("Upgraded contest_qso: added column {}", column);
-    }
-
-    private boolean contestColumnExists(String column) throws SQLException {
-        try (Statement st = contestConn.createStatement();
-             ResultSet rs = st.executeQuery("PRAGMA table_info(contest_qso)")) {
-            while (rs.next()) if (column.equalsIgnoreCase(rs.getString("name"))) return true;
-        }
-        return false;
-    }
-
-    private void applyContestSchema() throws SQLException {
-        try (Statement st = contestConn.createStatement()) {
-            st.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS contest_qso (
-                    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                    contest_id      TEXT NOT NULL,
-                    callsign        TEXT NOT NULL,
-                    datetime_utc    TEXT NOT NULL,
-                    band            TEXT,
-                    mode            TEXT,
-                    frequency       TEXT,
-                    operator        TEXT,
-                    serial_sent     TEXT,
-                    serial_received TEXT,
-                    field1          TEXT,
-                    field2          TEXT,
-                    field3          TEXT,
-                    field4          TEXT,
-                    field5          TEXT,
-                    points          INTEGER DEFAULT 0,
-                    is_dupe         INTEGER DEFAULT 0,
-                    rst_sent        TEXT,
-                    rst_received    TEXT,
-                    notes           TEXT,
-                    created_at      TEXT DEFAULT (datetime('now'))
-                )
-                """);
-            st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_call ON contest_qso(callsign)");
-            st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_cid  ON contest_qso(contest_id)");
-
-            // One-time migration: older contest_qso carried a redundant `exchange`
-            // blob (the structured field1..5 + rst/serial already hold the data,
-            // and it never fed Cabrillo). SQLite has no DROP COLUMN before 3.35,
-            // so rebuild the table without it.
-            if (contestColumnExists("exchange")) {
-                st.executeUpdate("""
-                    CREATE TABLE contest_qso__new (
-                        id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                        contest_id      TEXT NOT NULL,
-                        callsign        TEXT NOT NULL,
-                        datetime_utc    TEXT NOT NULL,
-                        band            TEXT,
-                        mode            TEXT,
-                        frequency       TEXT,
-                        operator        TEXT,
-                        serial_sent     TEXT,
-                        serial_received TEXT,
-                        field1          TEXT,
-                        field2          TEXT,
-                        field3          TEXT,
-                        field4          TEXT,
-                        field5          TEXT,
-                        points          INTEGER DEFAULT 0,
-                        is_dupe         INTEGER DEFAULT 0,
-                        rst_sent        TEXT,
-                        rst_received    TEXT,
-                        notes           TEXT,
-                        created_at      TEXT DEFAULT (datetime('now'))
-                    )
-                    """);
-                st.executeUpdate("""
-                    INSERT INTO contest_qso__new
-                        (id,contest_id,callsign,datetime_utc,band,mode,frequency,operator,
-                         serial_sent,serial_received,field1,field2,field3,field4,field5,
-                         points,is_dupe,rst_sent,rst_received,notes,created_at)
-                    SELECT id,contest_id,callsign,datetime_utc,band,mode,frequency,operator,
-                         serial_sent,serial_received,field1,field2,field3,field4,field5,
-                         points,is_dupe,rst_sent,rst_received,notes,created_at
-                    FROM contest_qso
-                    """);
-                st.executeUpdate("DROP TABLE contest_qso");
-                st.executeUpdate("ALTER TABLE contest_qso__new RENAME TO contest_qso");
-                st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_call ON contest_qso(callsign)");
-                st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqso_cid  ON contest_qso(contest_id)");
-                log.info("Migrated contest_qso: dropped redundant `exchange` column");
-            }
-
-            // Network mode: every contest QSO has a global id (uid), the station that logged it (origin) and when it last changed
-            // (updated_ms); a deleted QSO leaves a tombstone so the deletion can reach the other stations.
-            addContestColumnIfMissing(st, "uid", "TEXT");
-            addContestColumnIfMissing(st, "origin", "TEXT");
-            addContestColumnIfMissing(st, "updated_ms", "INTEGER");
-            st.executeUpdate("UPDATE contest_qso SET uid = lower(hex(randomblob(16))) WHERE uid IS NULL OR uid = ''");
-            st.executeUpdate("UPDATE contest_qso SET updated_ms = CAST(strftime('%s', datetime_utc) AS INTEGER) * 1000 WHERE updated_ms IS NULL");
-            st.executeUpdate("UPDATE contest_qso SET origin = '' WHERE origin IS NULL");
-            st.executeUpdate("CREATE UNIQUE INDEX IF NOT EXISTS idx_cqso_uid ON contest_qso(uid)");
-            st.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS contest_qso_deleted (
-                    uid         TEXT PRIMARY KEY,
-                    contest_id  TEXT NOT NULL,
-                    deleted_ms  INTEGER NOT NULL
-                )
-                """);
-
-            // WAE-DC QTC traffic (Rule §7). One row = one transferred QTC.
-            st.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS contest_qtc (
-                    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-                    contest_id    TEXT NOT NULL,
-                    partner_call  TEXT NOT NULL,
-                    direction     TEXT,
-                    series_no     INTEGER,
-                    series_size   INTEGER,
-                    qtc_qrg       TEXT,
-                    qtc_band      TEXT,
-                    qtc_mode      TEXT,
-                    qtc_datetime  TEXT,
-                    qso_time      TEXT,
-                    qso_call      TEXT,
-                    qso_serial    TEXT,
-                    created_at    TEXT DEFAULT (datetime('now'))
-                )
-                """);
-            st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cqtc_cid ON contest_qtc(contest_id)");
         }
     }
 
@@ -413,31 +276,11 @@ public class DatabaseManager {
     // ---------------------------------------------------------------
 
     public Connection getLogConnection()         { return logConn;          }
-    public Connection getContestConnection()     { return contestConn;      }
-    public synchronized Path getContestDbPath()  { return contestDbPath;    }
-
-    /**
-     * Point the contest log at a different SQLite file (created, with the contest schema, if it is new).
-     * The previous contest connection is closed. The DAOs fetch the connection on every call, so they follow
-     * the switch immediately. On failure the previous file stays in use.
-     */
-    public synchronized void useContestDb(Path file) throws Exception {
-        java.nio.file.Files.createDirectories(file.toAbsolutePath().getParent());
-        Connection next = openDb(file.toAbsolutePath().toString());
-        Connection prev = contestConn;
-        contestConn = next;
-        try { applyContestSchema(); }
-        catch (SQLException e) { contestConn = prev; closeQuietly(next); throw e; }
-        contestDbPath = file.toAbsolutePath();
-        if (prev != null && prev != next) closeQuietly(prev);
-        log.info("Contest log now using {}", contestDbPath);
-    }
     public Connection getTranslationsConnection(){ return translationsConn; }
     public Path       getDataDir()               { return dataDir;          }
 
     public void closeAll() {
         closeQuietly(logConn);
-        closeQuietly(contestConn);
         closeQuietly(configConn);
         closeQuietly(translationsConn);
     }
