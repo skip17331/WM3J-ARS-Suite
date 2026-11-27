@@ -105,7 +105,7 @@ public final class HubConfig {
             Files.createDirectories(p.getParent());
             Path tmp = p.resolveSibling("config.json.tmp");        // write whole, then swap in, so no one reads half a file
             Files.writeString(tmp, target.toString());
-            PrivateFiles.restrict(tmp);                             // owner only before it is swapped in (holds the contest network key)
+            PrivateFiles.restrict(tmp);                             // owner only before it is swapped in (it can hold keys)
             try {
                 Files.move(tmp, p, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             } catch (java.io.IOException cannotSwap) {

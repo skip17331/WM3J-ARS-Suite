@@ -8,7 +8,7 @@ import java.util.EnumSet;
 
 /**
  * Keeps the settings files that hold passwords and keys readable by their owner only: {@code ~/.j-log/upload.json} (log upload
- * logins), {@code ~/.j-log/lookup.json} (callsign lookup logins) and {@code ~/.j-hub/config.json} (the contest network key, among
+ * logins), {@code ~/.j-log/lookup.json} (callsign lookup logins) and {@code ~/.j-hub/config.json} (among
  * all the other settings).
  *
  * <p>On Linux and macOS the file is set to {@code rw-------}. Windows has no POSIX permissions; there, files under the user's own

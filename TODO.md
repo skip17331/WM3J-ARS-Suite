@@ -8,7 +8,6 @@ Contest mode (the contest page and cockpit, contest network, N1MM broadcast, Cab
 - [ ] **S** Looked at on screen 2026-11-27 (scratch home, 2560 x 1336): J-Log (a looked-up QSO logged, edited through the Recent log row, deleted with its confirmation), J-Map (azimuthal map, the + QSO card) and the Info page (contest calendar still there); no exceptions in the log. Not seen, because they open in windows the DevHook cannot capture: **Browse full log**, **Awards** and the **Translator** window (it opened without an exception). Still to do: those three by hand, J-Map with live spots, and a run on Windows and macOS.
 - [ ] **S** Old `~/.j-log/contest.db`, `contest-logs/` and `archive/` are left on disk and nothing reads them; decide whether the app should offer to move them aside.
 - [ ] **S** J-Map's Sweepstakes-sections layer is still drawn but never shaded as worked (`JMapCanvases.workedSections`); remove the layer or drop it from the map controls.
-- [ ] **S** `MacroBar` / `MacroConfig` still carry the contest placeholders (`{EXCH}`, `{NR}`, a contest's own message set); `QsoRecorder`, `SessionQsos` and `PrivateFiles` comments still mention the contest page. Tidy.
 - [ ] **S** The Plugin-Builder (separate repository) still writes contest plugins; they no longer load here.
 - [ ] **S** Call history stays (it places a station on J-Map); its Setup text and `CallHistory` doc were rewritten, but the two buttons that read contest logs now read only the normal log.
 
