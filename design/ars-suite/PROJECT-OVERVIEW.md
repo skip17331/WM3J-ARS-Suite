@@ -45,6 +45,7 @@ Open any of the 8 screenshots: same skeleton.
 ## What each surface contains (so you don't simplify them away)
 - **J-Hub Workspace** — left OPERATE/J-HUB nav; center = cockpit dashboard (mini J-Log + DX cluster + setup profiles) OR a routed config page (Station/Hardware/Data/Intel); config pages are real forms (selects, segmented toggles, sliders, switches) — see `09`.
 - **J-Log** — contest cockpit: exchange entry (Run/S&P), Full-QSO-details disclosure, contest log table, band map, Zones/Rate/DX-Cluster + instrument drawers, F-key macro bar, bottom status bar with freq/mode/band. Contest-selectable (CQ WW, WPX, etc.).
+  - *Since 2.0 the contest cockpit described above is built in its own program, **ARS Contest** (github.com/skip17331/WM3J-Contest-Suite). J-Log in the suite is the everyday log (full QSO form, recent log, log browser, awards, uploads). The contest mock-ups in this folder (`jlog-app.jsx`, `jlog-data.jsx`) are the original design for that cockpit.*
 - **J-Map** — propagation map; **azimuthal** (polar, QTH-centered) and **rectangular** (NASA Blue Marble basemap `bluemarble.jpg`) projections; spots overlaid with great-circle/gray-line; drawers: DX Spots, DX station info, Antenna·Rotor, Propagation, Space wx, Weather.
 - **J-Digi** — CW/RTTY/PSK decode; waterfall (Canvas) + tuning cursor, mode tabs, live decode window, Tx macros; Decoder + instrument drawers.
 - **J-Bridge** — WSJT-X/FT8: waterfall, 15s sequence bar + Even/Odd + Enable-Tx, Band Activity / Rx Frequency decode tables, Tx1–6 message sequence; WSJT-X link + instrument drawers.

@@ -1,6 +1,12 @@
 ARS SUITE PUNCH LIST
 Updated 2026-11-19. Started from the 2026-11-17 review.
 
+NOTE (2026-11-27, version 2.0): this list was written while contest logging was still part of the suite. Every
+item that mentions the contest page, the contest network, N1MM+, Cabrillo, Super Check Partial or a QSO party is
+about the contest program, which moved to ARS Contest (github.com/skip17331/WM3J-Contest-Suite) and is tracked in
+that repository's TODO.md. The items are kept here as the record of what was done and checked; they are not open
+work for the suite.
+
 Sections
   1   Completed
   2   Completed, needs testing  (2a running app, 2b needs the rig, 2c needs accounts or

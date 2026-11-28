@@ -205,7 +205,11 @@ A bar across the top tells you which database you are writing to, with **Databas
 
 **Awards.** The Awards drawer, or the **Awards** button on the dock, shows DXCC, WAS, WAC, grid squares, IOTA, POTA, SOTA and the CQ / ITU zones, each as worked / confirmed of its target. **Open awards ⤢** opens the full screen, with tabs for a *Summary*, a *DXCC* band-by-band matrix, *WAS*, *WAC*, *Grids*, *IOTA*, *POTA*, *SOTA*, *Zones*, endorsement *Levels* and **My awards**. A QSO's own CQ / ITU zone counts when it has one; otherwise the zone comes from the callsign's country and, in countries that span several CQ zones, from the worked station's grid square. **My awards** tracks award sheets of your own, such as a special-event certificate: use **New award…**, or **From template** for the 13 Colonies. A call whose DXCC entity cannot be worked out is left out of the DXCC count.
 
-**Contests.** Contest logging is not part of this suite any more: it is a separate program, **ARS Contest** (the WM3J-Contest-Suite repository), which can run on the same PC and share this suite's J-Hub. Old contest logs from earlier versions stay in `~/.j-log/contest-logs/`; nothing here reads them.
+**Contests.** Contest logging is not part of this suite any more. In 2.0 it moved to its own program, **ARS Contest**
+(the WM3J-Contest-Suite repository), so that the contest side could be done properly: its own screens, its own rules and
+logs per contest, its own network and Cabrillo output, and its own release pace. The two install side by side and can share
+this suite's J-Hub. [Why it moved, what is where, and how to bring an old contest log across](README.md#contesting--its-own-program-ars-contest).
+Old contest logs from earlier versions stay in `~/.j-log/contest.db` and `~/.j-log/contest-logs/`; nothing here reads them.
 
 **Translator.** Pick a language and a phrase; it shows the phrase in that language with a pronunciation guide to
 say it with. It covers Spanish, German, French, Italian and Portuguese, and, set to *By country*, it follows the DXCC country of the
@@ -383,7 +387,8 @@ downloads. It is a simple model and says so on screen.
 
 The F1–F8 keys are set in **Setup ▸ Transmit & macros**. Each key has a label, a **CW / RTTY text** and an **SSB
 voice file**. Macros are built from your station data and can use **tags** — `{MYCALL}`, `{CALL}`, `{NAME}` and about
-forty more, listed under *Macro tags* on that page. Fields you have not filled in simply stay empty. **Rebuild from
+forty more, listed under *Macro tags* on that page. A tag whose setting you have not filled in stops that message from being
+sent, and the message says which setting is missing. **Rebuild from
 station data** regenerates the defaults.
 
 **What a key sends** is chosen next to the macro buttons in J-Log and J-Log-Quick, with the
@@ -415,7 +420,7 @@ when a window closes, and by a watchdog.
 **Loose windows.** Start a module on its own with its shortcut, or from a terminal:
 
 ```bash
-./ars-fx/ars-fx.sh --module map      # log | logc | map | sat | digi | bridge | vault | learn | morse | workshop
+./ars-fx/ars-fx.sh --module map      # log | map | sat | digi | bridge | vault | learn | morse | workshop
 ./ars-fx/ars-fx.sh --hub             # the background hub only
 ```
 
@@ -480,7 +485,7 @@ expected and what happened. If you started the app from a terminal, include any 
 | Path | Contents |
 |------|----------|
 | `~/.j-hub/config.json` | All settings: station, rig, cluster, transmit, display |
-| `~/.j-hub/scp/` | Super Check Partial call lists |
+| `~/.j-hub/scp/` | Left over from versions before 2.0 (Super Check Partial call lists, a contest feature that moved to ARS Contest). Nothing reads it; you can delete it |
 | `~/.j-log/upload.json`, `lookup.json` | Upload and lookup settings: user names, and passwords only when there is no system keyring |
 | `~/.j-log/macros.json` | Your macros |
 | `~/.j-log/recordings/` | QSO recordings, one folder per day (UTC), when QSO recording is on |

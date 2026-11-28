@@ -109,9 +109,11 @@ The j-digi modem keeps its own settings in Java Preferences, not here (see `../j
 
 ## Testing
 
-JUnit 5 under `src/test/java/com/ars/fx`: about 650 tests, run on Linux and Windows for every pull request (`.github/workflows/build.yml`). Run `mvn test`; tests that touch settings set `user.home` to a temp folder, and the J-Digi modem's Java Preferences go to a test node (`-Djdigi.prefs.node` in the surefire `argLine`).
+JUnit 5 under `src/test/java/com/ars/fx`: about 500 tests, run on Linux and Windows for every pull request (`.github/workflows/build.yml`). Run `mvn test`; tests that touch settings set `user.home` to a temp folder, and the J-Digi modem's Java Preferences go to a test node (`-Djdigi.prefs.node` in the surefire `argLine`).
 Libraries have their own tests in each module.
 
-## Contest mode was removed
+## Contest mode was removed (2.0)
 
-Contest logging (the contest page, cockpit, contest network, N1MM broadcast, Cabrillo export, the 86 contest definitions, Super Check Partial, the contest databases) was taken out of this app and lives in **ARS Contest** (the WM3J-Contest-Suite repository). Old `~/.j-log/contest.db` and `~/.j-log/contest-logs/` files are left on disk, untouched, and nothing here reads them. `~/.j-log/callhistory.db` is still used, to place a station on J-Map.
+Contest logging (the contest page, cockpit, contest network, N1MM broadcast, Cabrillo export, the 86 contest definitions, Super Check Partial, the contest databases) was taken out of this app and `j-log-engine` and lives in **ARS Contest** (the WM3J-Contest-Suite repository). It was moved on purpose, not dropped: to do the contest side justice it needed its own screens, Setup pages, settings, releases and versioning, which it could not have as one module among J-Digi, J-Sat, J-Vault and J-Learn. The user-facing explanation is in `README.md` ("Contesting — its own program").
+
+Do not add contest features back here: they belong in ARS Contest, whose code started as a copy of what was removed (so a fix to shared code, such as the engine's DXCC resolver, may need making in both). Old `~/.j-log/contest.db` and `~/.j-log/contest-logs/` files are left on disk, untouched, and nothing here reads them. `~/.j-log/callhistory.db` is still used, to place a station on J-Map. The two programs run side by side: ARS Contest uses `~/.ars-contest`, hub port 8091 and its own shortcuts.

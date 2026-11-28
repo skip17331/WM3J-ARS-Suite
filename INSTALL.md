@@ -11,6 +11,10 @@ There are three routes:
 
 > After installing, read **[USER_GUIDE.md](USER_GUIDE.md)** for first-run setup and a tour of the app.
 
+> **Contest logging** is a separate program, **ARS Contest**, since 2.0: [its install guide](https://github.com/skip17331/WM3J-Contest-Suite/blob/main/INSTALL.md).
+> It installs beside this suite (own data folder, own shortcuts, own hub port) and neither install touches the other.
+> [Why it is separate](README.md#contesting--its-own-program-ars-contest).
+
 ---
 
 ## What you get
